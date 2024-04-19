@@ -294,12 +294,59 @@ class Gripper(gp.GripperInterface):
             gm.gen_mycframe(pos=jaw_center_gl_pos, rotmat=jaw_center_gl_rotmat).attach_to(meshmodel)
         return meshmodel
 
-    def get_jnt_values(self, component_name):
-        if component_name in self.manipulator_dict:
-            return self.manipulator_dict[component_name].get_jnt_values()
-        else:
-            raise ValueError("The given component name is not supported!")
+    def lg_open(self):
+        '''
+        Open left gripper
+        '''
+        pass
 
+    def lg_close(self):
+        '''
+        Close left gripper
+        '''
+        pass
+
+    def rg_open(self):
+        '''
+        Open right gripper
+        '''
+        pass
+
+    def rg_close(self):
+        '''
+        Close right gripper
+        '''
+        pass
+
+    def rg_jaw_to(self, jawwidth):
+        '''
+        Right gripper jaws to "jawwidth"
+        '''
+        pass
+
+    def lg_jaw_to(self, jawwidth):
+        '''
+        left gripper jaws to "jawwidth"
+        '''
+        pass
+
+    def mg_open(self):
+        '''
+        Main gripper open
+        '''
+        pass
+
+    def mg_close(self):
+        '''
+        Main gripper open
+        '''
+        pass
+
+    def mg_jaw_to(self, jawwidth):
+        '''
+        Main gripper jaws to "jawwidth"
+        '''
+        pass
 
 # def move_line(wide, id_group):
 #       encoder=34000*wide+700

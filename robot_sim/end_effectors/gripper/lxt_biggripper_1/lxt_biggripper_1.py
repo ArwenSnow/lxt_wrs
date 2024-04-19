@@ -396,7 +396,7 @@ class Gripper(gp.GripperInterface):
 if __name__ == '__main__':
     import visualization.panda.world as wd
     import modeling.geometric_model as gm
-    import robot_sim.end_effectors.gripper.lite6_wrs_gripper as gp1
+
 
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
