@@ -29,7 +29,7 @@ if __name__ == '__main__':
     ghw.go_open()
     realwide = 0
     ghw.move_con(realwide)
-    # ghw.current_stop()
+    ghw.current_stop()
     gripper.jaw_to(realwide)
     gripper.gen_meshmodel().attach_to(base)
 
