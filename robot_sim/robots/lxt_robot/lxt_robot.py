@@ -5,7 +5,7 @@ import modeling.collision_model as cm
 import modeling.model_collection as mc
 import robot_sim._kinematics.jlchain as jl
 import robot_sim.manipulators.lxt_base.lxt_base as rbt
-import robot_sim.end_effectors.gripper.lxt_gripper.lxt_gripper as hnd
+import robot_sim.end_effectors.gripper.reconfgripper.reconfgripper as hnd
 import robot_sim.robots.robot_interface as ri
 import visualization.panda.world as wd
 from panda3d.core import CollisionNode, CollisionBox, Point3

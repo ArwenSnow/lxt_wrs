@@ -33,7 +33,7 @@ class Gripperhelper(object):
         time.sleep(5)
 
     def move_line(self,wide):
-        encoder = int(-34000 * wide + 1666)
+        encoder = int(-34000 * wide + 1937)
         print(encoder)
         return encoder
 

@@ -7,7 +7,7 @@ import robot_sim.manipulators.manipulator_interface as mi
 
 class PGC(mi.ManipulatorInterface):
 
-    def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), homeconf=np.zeros(3), name='PGC', enable_cc=True):
+    def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), homeconf=np.zeros(3), name='PGC_300_60_W_S', enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, name=name)
         this_dir, this_filename = os.path.split(__file__)
         self.jlc = jl.JLChain(pos=pos, rotmat=rotmat, homeconf=homeconf, name=name)
@@ -19,7 +19,7 @@ class PGC(mi.ManipulatorInterface):
         # links
         self.jlc.lnks[0]['name'] = "base"
         self.jlc.lnks[0]['loc_pos'] = np.zeros(3)
-        self.jlc.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "PGC.STL")
+        self.jlc.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "PGC_300_60_W_S.STL")
         self.jlc.lnks[0]['rgba'] = [.2,.2,.2, 1]
         self.jlc.reinitialize()
 

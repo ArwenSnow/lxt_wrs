@@ -37,7 +37,6 @@ class Reconfgripper():
         '''
         Open left gripper
         '''
-        # self.sub_gripper.set_dxl_goal_pos()
         pass
 
     def lg_close(self):

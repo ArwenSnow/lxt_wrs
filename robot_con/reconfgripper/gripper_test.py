@@ -6,8 +6,8 @@ import modeling.collision_model as cm
 from panda3d.core import CollisionNode, CollisionBox, Point3
 import robot_sim._kinematics.jlchain as jl
 import basis.robot_math as rm
-import robot_sim.end_effectors.gripper.lxt_gripper.lxt_gripper as gr
-import robot_sim.end_effectors.gripper.lxt_gripper.gripperhelper as gh
+import robot_sim.end_effectors.gripper.reconfgripper.reconfgripper as gr
+import robot_sim.end_effectors.gripper.reconfgripper.gripperhelper as gh
 import robot_sim.end_effectors.gripper.gripper_interface as gp
 import drivers.devices.dynamixel_sdk.sdk_wrapper as mw
 import time
@@ -18,9 +18,9 @@ import modeling.geometric_model as gm
 
 if __name__ == '__main__':
 
-    base = wd.World(cam_pos=[1, 1, 0.5], lookat_pos=[0, 0, .2])
-    gm.gen_frame().attach_to(base)
-    gripper = gr.Gripper()
+    # base = wd.World(cam_pos=[1, 1, 0.5], lookat_pos=[0, 0, .2])
+    # gm.gen_frame().attach_to(base)
+    gripper = gr.reconfgripper()
     # gripper.gen_meshmodel().attach_to(base)
     peripheral_baud = 57600
     com = 'COM3'
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     realwide = 0
     ghw.move_con(realwide)
     ghw.current_stop()
-    gripper.jaw_to(realwide)
-    gripper.gen_meshmodel().attach_to(base)
+    # gripper.jaw_to(realwide)
+    # gripper.gen_meshmodel().attach_to(base)
 
-    base.run()
+    # base.run()
