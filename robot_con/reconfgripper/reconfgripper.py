@@ -1,28 +1,27 @@
-import time
-import gripperhelper as gh
+from time import sleep
 import drivers.devices.dh.dh_modbus_gripper as dh_modbus_gripper
-import drivers.devices.dynamixel_sdk.sdk_wrapper as mw
+import drivers.devices.dynamixel_sdk.sdk_wrapper as dxl
 
 class Reconfgripper():
     # def __init__(self,  com, baudrate):
     #     self.sub_gripper=dxl.DynamixelMotor(com, baudrate, toggle_group_sync_write=True)
     #     # self.m_gripper = dh.DIOAODIFOAIJF()
-    def __init__(self, port = 'com3', baudrate = 57600, force = 10, vel = 10):
+    def __init__(self, port = 'com3', baudrate = 57600, force = 10, speed = 10):
         port = port
         baudrate = baudrate
         initstate = 0
         # g_state = 0
         force = force
-        vel = vel
+        speed = speed
         self.m_gripper = dh_modbus_gripper.dh_modbus_gripper()
         self.m_gripper.open(port, baudrate)
         self.init_gripper()
         while (initstate != 1):
             initstate = self.m_gripper.GetInitState()
-            time.sleep(0.2)
+            sleep(0.2)
         self.m_gripper.SetTargetPosition(500)
-        self.mg_set_vel(vel)
-        self.mg_set_force(force)
+        self.set_speed(speed)
+        self.set_force(force)
 
     def init_gripper(self):
         self.m_gripper.Initialization()
@@ -38,7 +37,7 @@ class Reconfgripper():
 
     def init_real_gripper(self):
         if self.real:
-            self.gripper_r = mw.DynamixelMotor(self.com, baud_rate=self.peripheral_baud)
+            self.gripper_r = dxl.DynamixelMotor(self.com, baud_rate=self.peripheral_baud)
             control_mode = 5
             self.gripper_r.set_dxl_op_mode(control_mode, dxl_id=1)
             self.gripper_r.enable_dxl_torque(dxl_id=1)
@@ -93,7 +92,7 @@ class Reconfgripper():
         Open left gripper
         '''
         self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=1)
-        time.sleep(5)
+        sleep(5)
 
 
     def lg_close(self):
@@ -101,7 +100,7 @@ class Reconfgripper():
         Close left gripper
         '''
         self.gripper_r.set_dxl_goal_pos(tgt_pos=1976, dxl_id=1)
-        time.sleep(5)
+        sleep(5)
 
 
     def rg_open(self):
@@ -109,7 +108,7 @@ class Reconfgripper():
         Open right gripper
         '''
         self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=1)
-        time.sleep(5)
+        sleep(5)
 
 
     def rg_close(self):
@@ -117,7 +116,7 @@ class Reconfgripper():
         Close right gripper
         '''
         self.gripper_r.set_dxl_goal_pos(tgt_pos=1976, dxl_id=1)
-        time.sleep(5)
+        sleep(5)
 
 
     def lg_jaw_to(self, jawwidth):
@@ -159,7 +158,7 @@ class Reconfgripper():
         g_state = 0
         while (g_state == 0):
             g_state = self.m_gripper.GetGripState()
-            time.sleep(0.2)
+            sleep(0.2)
         pass
 
     def lg_get_jawwidth(self):
