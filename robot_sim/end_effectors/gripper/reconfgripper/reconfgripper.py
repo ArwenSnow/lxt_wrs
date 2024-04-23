@@ -275,6 +275,8 @@ class reconfgripper(gp.GripperInterface):
 
 
 
+
+
 if __name__ == '__main__':
     import visualization.panda.world as wd
     import modeling.geometric_model as gm

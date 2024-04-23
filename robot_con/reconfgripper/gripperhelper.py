@@ -25,15 +25,15 @@ class Gripperhelper(object):
 
 
     def go_open(self):
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=700, dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=1)
         time.sleep(5)
 
     def go_close(self):
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1722, dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=1976, dxl_id=1)
         time.sleep(5)
 
     def move_line(self,wide):
-        encoder = int(-34000 * wide + 1937)
+        encoder = int(-32714 * wide + 1976)
         print(encoder)
         return encoder
 
