@@ -50,6 +50,7 @@ class PGC(gp.GripperInterface):
         self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "zhijian_1.stl")#fingertip
         self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
         self.lft.jnts[2]['loc_pos'] = np.array([0, 0, 0.1])
+        self.lft.jnts[2]['loc_rotmat'] = rm.rotmat_from_axangle([0,1,0], np.deg2rad(45))
 
 
         # lft

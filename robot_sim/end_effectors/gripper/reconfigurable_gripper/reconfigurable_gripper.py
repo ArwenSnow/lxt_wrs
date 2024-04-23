@@ -24,7 +24,7 @@ class reconfigurable_gripper(gp.GripperInterface):
         self.body = PGC.PGC(pos=cpl_end_pos, rotmat=cpl_end_rotmat,  name='body')
 
         # lft gripper
-        self.lft = rg.reconfgripper(pos=self.body.lft.jnts[2]['gl_posq'], rotmat=cpl_end_rotmat,  name='lft')
+        self.lft = rg.reconfgripper(pos=self.body.lft.jnts[2]['gl_posq'], rotmat=self.body.lft.jnts[2]['gl_rotmatq'],  name='lft')
 
         # rgt gripper
         self.rgt = rg.reconfgripper(pos=self.body.rgt.jnts[2]['gl_posq'],
