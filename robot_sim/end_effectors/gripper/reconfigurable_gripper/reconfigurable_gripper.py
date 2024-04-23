@@ -24,18 +24,24 @@ class reconfigurable_gripper(gp.GripperInterface):
         self.body = PGC.PGC(pos=cpl_end_pos, rotmat=cpl_end_rotmat,  name='body')
 
         # lft gripper
-        self.lft = rg.reconfgripper(pos=self.body.lft.jnts[3]['gl_posq'], rotmat=cpl_end_rotmat,  name='lft')
+        self.lft = rg.reconfgripper(pos=self.body.lft.jnts[2]['gl_posq'], rotmat=cpl_end_rotmat,  name='lft')
 
         # rgt gripper
-        self.rgt = rg.reconfgripper(pos=self.body.rgt.jnts[3]['gl_posq'],
-                                    rotmat=np.dot(rm.rotmat_from_axangle([0, 0, 1], math.pi ), self.body.rgt.jnts[3 ]['gl_rotmatq']),
+        self.rgt = rg.reconfgripper(pos=self.body.rgt.jnts[2]['gl_posq'],
+                                    rotmat=np.dot(rm.rotmat_from_axangle([0, 0, 1], math.pi ), self.body.rgt.jnts[2]['gl_rotmatq']),
                                     name='rgt')
 
-        # # jaw width
-        # self.jawwidth_rng = [0.0, .06]
+        # jaw width
+        # self.jawwidth_rng = {'main': self.body.jawwidth_rng, 'lft': self.lft.jawwidth_rng, 'rgt': self.rgt.jawwidth_rng}
         # # jaw center
         # self.jaw_center_pos = np.array([0, 0, .133])
+        # self.jawwidth_list = {'main': self.body.jawwidth, 'lft': self.lft.jawwidth, 'rgt': self.rgt.jawwidth_rng}
 
+
+        self.gripper_dict = {}
+        self.gripper_dict['lft'] = self.lft
+        self.gripper_dict['rgt'] = self.rgt
+        self.gripper_dict['main'] = self.body
 
     def fix_to(self, pos, rotmat):
         self.pos = pos
@@ -47,26 +53,29 @@ class reconfigurable_gripper(gp.GripperInterface):
         self.lft.fix_to(cpl_end_pos, cpl_end_rotmat)
         self.rgt.fix_to(cpl_end_pos, cpl_end_rotmat)
 
-    def fk(self, motion_val):
+    def fk(self, component_name='main', motion_val='main'):
         """
-        lft_outer is the only active joint, all others mimic this one
-        :param: motion_val, meter or radian
         """
-        if self.lft.jnts[1]['motion_rng'][0] <= -motion_val <= self.lft.jnts[1]['motion_rng'][1]:
-            self.lft.jnts[1]['motion_val'] = motion_val
-            self.rgt.jnts[1]['motion_val'] = self.lft.jnts[1]['motion_val']
-            self.lft.fk()
-            self.rgt.fk()
-        else:
-            raise ValueError("The motion_val parameter is out of range!")
+        # def update_oih(component_name='arm'):
+        #     for obj_info in self.oih_infos:
+        #         gl_pos, gl_rotmat = self.cvt_loc_tcp_to_gl(component_name, obj_info['rel_pos'], obj_info['rel_rotmat'])
+        #         obj_info['gl_pos'] = gl_pos
+        #         obj_info['gl_rotmat'] = gl_rotmat
 
-    def jaw_to(self, jaw_width):
-        if jaw_width > self.jawwidth_rng[1]:
-            raise ValueError("The jaw_width parameter is out of range!")
-        self.fk(motion_val=-jaw_width / 2.0)
+        def update_component(motion_val):
+            status= self.gripper_dict[component_name].fk(motion_val=motion_val/2)
+            # status_lft = self.gipper_dict['lft'].fk(motion_val=motion_val)
+            # status_rgt = self.gipper_dict['rgt'].fk(motion_val=motion_val)
+            self.gripper_dict['lft'].fix_to(
+                pos=self.gripper_dict['main'].lft.jnts[-1]['gl_posq'],
+                rotmat=self.gripper_dict['main'].lft.jnts[-1]['gl_rotmatq'])
+            self.gripper_dict['rgt'].fix_to(
+                pos=self.gripper_dict['main'].rgt.jnts[-1]['gl_posq'],
+                rotmat=self.gripper_dict['main'].rgt.jnts[-1]['gl_rotmatq'])
+            # update_oih(component_name=component_name)
+            return status
 
-    def get_jawwidth(self):
-        return -self.lft.jnts[1]['motion_val'] * 2
+        return update_component(motion_val)
 
     def gen_stickmodel(self,
                        tcp_jnt_id=None,
@@ -152,8 +161,80 @@ class reconfigurable_gripper(gp.GripperInterface):
             gm.gen_mycframe(pos=jaw_center_gl_pos, rotmat=jaw_center_gl_rotmat).attach_to(meshmodel)
         return meshmodel
 
+    def lg_open(self):
+        '''
+        Open left gripper
+        '''
+        self.fk()
+        self.jawwidth = 0.028
 
 
+    def lg_close(self):
+        '''
+        Close left gripper
+        '''
+        self.lft.jaw_to(0)
+
+
+    def rg_open(self):
+        '''
+        Open right gripper
+        '''
+        self.rgt.jaw_to(.028)
+
+
+    def rg_close(self):
+        '''
+        Close right gripper
+        '''
+        self.rgt.jaw_to(0)
+
+    def rg_jaw_to(self, jaw_width):
+        '''
+        Right gripper jaws to "jaw_width"
+        '''
+        self.lft.jaw_to(jaw_width)
+
+    def lg_jaw_to(self, jaw_width):
+        '''
+        left gripper jaws to "jaw_width"
+        '''
+        self.rgt.jaw_to(jaw_width)
+
+    def mg_open(self):
+        '''
+        Open left gripper
+        '''
+        self.body.jaw_to(.060)
+        self.fk("main", 0.060)
+
+
+    def mg_close(self):
+        '''
+        Close left gripper
+        '''
+        self.body.jaw_to(0)
+
+
+    def mg_jaw_to(self, jaw_width):
+        '''
+        Open right gripper
+        '''
+        self.body.jaw_to(jaw_width)
+
+    def get_jaw_center_pos(self):
+        '''
+        Get jaw center position
+        '''
+        pass
+
+    def get_jawwidth(self, g = "m"):
+        if g == "m":
+            return self.body.get_jawwidth()
+        elif g =="l":
+            return self.lft.get_jawwidth()
+        else:
+            return self.rgt.get_jawwidth()
 
 if __name__ == '__main__':
     import visualization.panda.world as wd
@@ -162,10 +243,10 @@ if __name__ == '__main__':
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
     grpr = reconfigurable_gripper()
-    grpr.body.mg_open()
-    grpr.lft.lg_open()
-    grpr.rgt.rg_open()
-    jawwidth = grpr.body.get_jawwidth()
+    grpr.mg_close()
+    grpr.lg_close()
+    grpr.rg_open()
+    jawwidth = grpr.get_jawwidth(g = "m")
     print(jawwidth)
 
     # grpr.gen_meshmodel().attach_to(base)

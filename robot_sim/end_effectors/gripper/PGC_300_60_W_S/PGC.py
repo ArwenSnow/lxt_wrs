@@ -11,76 +11,111 @@ import robot_sim.end_effectors.gripper.gripper_interface as gp
 
 class PGC(gp.GripperInterface):
 
-    def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), cdmesh_type='convex_hull', name='PGC_300_60_W_S',
+    def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), coupling_offset_pos=np.zeros(3),
+                 coupling_offset_rotmat=np.eye(3), cdmesh_type='convex_hull', name='PGC_300_60_W_S',
                  enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, cdmesh_type=cdmesh_type, name=name)
         this_dir, this_filename = os.path.split(__file__)
+        self.coupling.jnts[1]['loc_pos'] = coupling_offset_pos
+        self.coupling.jnts[1]['loc_rotmat'] = coupling_offset_rotmat
+        self.coupling.lnks[0]['collision_model'] = cm.gen_stick(self.coupling.jnts[0]['loc_pos'],
+                                                                self.coupling.jnts[1]['loc_pos'],
+                                                                thickness=.07, rgba=[.2, .2, .2, 1],
+                                                                sections=24)
         cpl_end_pos = self.coupling.jnts[-1]['gl_posq']
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
 
+
         # gripper base
-        self.body = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(2), name='base')
-        self.body.jnts[1]['loc_pos'] = np.array([0, 0, 0])
-        self.body.lnks[0]['name'] = "PGC_300_60_W_S"
-        self.body.lnks[0]['loc_pos'] = np.zeros(3)
-        self.body.lnks[0]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "PGC_1.stl"),
-                                                                 expand_radius=.001)
-        self.body.lnks[0]['rgba'] = [0.2, 0.2, 0.2, 1]
+        # self.body = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(2), name='base')
+        # self.body.jnts[1]['loc_pos'] = np.array([0, 0, 0])
+        # self.body.lnks[0]['name'] = "PGC_300_60_W_S"
+        # self.body.lnks[0]['loc_pos'] = np.zeros(3)
+        # self.body.lnks[0]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "PGC_1.stl"),
+        #                                                          expand_radius=.001)
+        # self.body.lnks[0]['rgba'] = [0.2, 0.2, 0.2, 1]
+
+        #===
+        self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
+        self.lft.lnks[0]['name'] = "base"
+        self.lft.lnks[0]['loc_pos'] = np.zeros(3)
+        self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "PGC_1.stl")
+        self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
+
+        self.lft.jnts[1]['loc_pos'] = np.array([.0062, -.01635, .143])
+        self.lft.jnts[1]['type'] = 'prismatic'
+        self.lft.jnts[1]['motion_rng'] = [0, .03]
+        self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
+        self.lft.lnks[1]['name'] = "finger1"
+        self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "zhijian_1.stl")#fingertip
+        self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
+        self.lft.jnts[2]['loc_pos'] = np.array([0, 0, 0.1])
+
 
         # lft
-        self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(3), name='lft')
-        self.lft.jnts[1]['loc_pos'] = np.array([.0062, -.01635, .143])
-        self.lft.jnts[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0,0)
-        self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
-        self.lft.jnts[2]['loc_pos'] = np.array([0,0,0])
-        self.lft.jnts[2]['loc_motionax'] = np.array([-1, 0, 0])
-        self.lft.jnts[3]['loc_pos'] = np.array([.0264, .01635, .0204])
+        # self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(3), name='lft')
+        # self.lft.jnts[1]['loc_pos'] = np.array([.0062, -.01635, .143])
+        # self.lft.jnts[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0,0)
+        # self.lft.jnts[1]['type'] = 'prismatic'
+        # self.lft.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
+        # self.lft.lnks[1]['name'] = "zhijianzujian1_1"
+        # self.lft.lnks[1]['loc_pos'] = np.array([0,0,0])
+        # self.lft.lnks[1]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "zhijian_1.stl"),
+        #                                                   expand_radius=.001)
+        # self.lft.lnks[1]['rgba'] = [.57, .57, .57, 1]
 
-        self.lft.lnks[1]['name'] = "zhijianzujian1_1"
-        self.lft.lnks[1]['loc_pos'] = np.array([0,0,0])
-        self.lft.lnks[1]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "zhijian_1.stl"),
-                                                                expand_radius=.001)
-        self.lft.lnks[1]['rgba'] = [.57, .57, .57, 1]
-        # self.lft.lnks[2]['name'] = "zhijianzujian1_2"
-        # self.lft.lnks[2]['loc_pos'] = np.array([0,0,0])
-        # self.lft.lnks[2]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "zhijian_2.stl"),
-        #                                                         expand_radius=.001)
-        # self.lft.lnks[2]['rgba'] = [.57, .57, .57, 1]
+        #rgt
+        self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
+        self.rgt.jnts[1]['loc_pos'] = np.array([-.0062,.01635,.143])
+        self.rgt.jnts[1]['type'] = 'prismatic'
+        self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
+        self.rgt.lnks[1]['name'] = "finger2"
+        self.rgt.lnks[1]['loc_rotmat'] = rm.rotmat_from_axangle([0,0,1], np.deg2rad(180))
+        self.rgt.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "zhijian_1.stl")
+        self.rgt.lnks[1]['rgba'] = [.5, .0, .5, 1]
+        self.rgt.jnts[2]['loc_pos'] = np.array([0,0,0])
 
+        # jaw center
+        self.jaw_center_pos = np.array([0, 0, .14]) + coupling_offset_pos
+        # reinitialize
+        self.lft.reinitialize()
+        self.rgt.reinitialize()
+        # collision detection
+        self.all_cdelements = []
+        self.enable_cc(toggle_cdprimit=enable_cc)
 
         # rgt
-        self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(3), name='rgt')
-        self.rgt.jnts[1]['loc_pos'] = np.array([-.0062,.01635,.143])
-        self.rgt.jnts[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0,0)
-        self.rgt.jnts[1]['type'] = 'prismatic'
-        self.rgt.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
-        self.rgt.jnts[2]['loc_pos'] = np.array([0,0,0])
-        self.rgt.jnts[2]['loc_motionax'] = np.array([1, 0, 0])
-        self.rgt.jnts[3]['loc_pos'] = np.array([-.0264, -.01635, .0204])
-
-        self.rgt.lnks[1]['name'] = "zhijianzujian2_1"
-        self.rgt.lnks[1]['loc_pos'] = np.array([0,0,0])
-        self.rgt.lnks[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, math.pi *1)
-        self.rgt.lnks[1]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "zhijian_1.stl"),
-                                                                expand_radius=.001)
-        self.rgt.lnks[1]['rgba'] = [.57, .57, .57, 1]
-        # self.rgt.lnks[2]['name'] = "zhijianzujian2_2"
-        # self.rgt.lnks[2]['loc_pos'] = np.array([0,0,0])
-        # self.rgt.lnks[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, math.pi *1)
-        # self.rgt.lnks[2]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "zhijian_2.stl"),
+        # self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(3), name='rgt')
+        # self.rgt.jnts[1]['loc_pos'] = np.array([-.0062,.01635,.143])
+        # self.rgt.jnts[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0,0)
+        # self.rgt.jnts[1]['type'] = 'prismatic'
+        # self.rgt.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
+        # self.rgt.jnts[2]['loc_pos'] = np.array([0,0,0])
+        # self.rgt.jnts[2]['loc_motionax'] = np.array([1, 0, 0])
+        # self.rgt.jnts[3]['loc_pos'] = np.array([-.0264, -.01635, .0204])
+        #
+        # self.rgt.lnks[1]['name'] = "zhijianzujian2_1"
+        # self.rgt.lnks[1]['loc_pos'] = np.array([0,0,0])
+        # self.rgt.lnks[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, math.pi *1)
+        # self.rgt.lnks[1]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "zhijian_1.stl"),
         #                                                         expand_radius=.001)
-        # self.rgt.lnks[2]['rgba'] = [.57, .57, .57, 1]
-
-
-        # reinitialize
-        self.lft.reinitialize(cdmesh_type=cdmesh_type)
-        self.lft.reinitialize(cdmesh_type=cdmesh_type)
-        self.rgt.reinitialize(cdmesh_type=cdmesh_type)
+        # self.rgt.lnks[1]['rgba'] = [.57, .57, .57, 1]
+        # # self.rgt.lnks[2]['name'] = "zhijianzujian2_2"
+        # # self.rgt.lnks[2]['loc_pos'] = np.array([0,0,0])
+        # # self.rgt.lnks[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, math.pi *1)
+        # # self.rgt.lnks[2]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "zhijian_2.stl"),
+        # #                                                         expand_radius=.001)
+        # # self.rgt.lnks[2]['rgba'] = [.57, .57, .57, 1]
+        #
+        #
+        # # reinitialize
+        # self.lft.reinitialize(cdmesh_type=cdmesh_type)
+        # self.lft.reinitialize(cdmesh_type=cdmesh_type)
+        # self.rgt.reinitialize(cdmesh_type=cdmesh_type)
         # jaw width
         self.jawwidth_rng = [0.0, .9]
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, .133])
+        self.jaw_center_pos = np.array([0, 0, .133]) + coupling_offset_pos
         # collision detection
         self.all_cdelements = []
         # self.enable_cc(toggle_cdprimit=enable_cc)
@@ -123,19 +158,14 @@ class PGC(gp.GripperInterface):
         if toggle_cdprimit:
             super().enable_cc()
             # cdprimit
-            self.cc.add_cdlnks(self.lft, [0, 1])
-            self.cc.add_cdlnks(self.lft, [1])
+            self.cc.add_cdlnks(self.lft, [0])
             self.cc.add_cdlnks(self.rgt, [1])
             activelist = [self.lft.lnks[0],
-                          self.lft.lnks[1],
-                          self.lft.lnks[1],
                           self.rgt.lnks[1]]
             self.cc.set_active_cdlnks(activelist)
             self.all_cdelements = self.cc.all_cdelements
         else:
             self.all_cdelements = [self.lft.lnks[0],
-                                   self.lft.lnks[1],
-                                   self.lft.lnks[1],
                                    self.rgt.lnks[1]]
         # cdmesh
         for cdelement in self.all_cdelements:
@@ -157,7 +187,7 @@ class PGC(gp.GripperInterface):
         lft_outer is the only active joint, all others mimic this one
         :param: motion_val, meter or radian
         """
-        if self.lft.jnts[1]['motion_rng'][0] <= -motion_val <= self.lft.jnts[1]['motion_rng'][1]:
+        if self.lft.jnts[1]['motion_rng'][0] <= motion_val <= self.lft.jnts[1]['motion_rng'][1]:
             self.lft.jnts[1]['motion_val'] = motion_val
             self.rgt.jnts[1]['motion_val'] = self.lft.jnts[1]['motion_val']
             self.lft.fk()
@@ -168,7 +198,7 @@ class PGC(gp.GripperInterface):
     def jaw_to(self, jaw_width):
         if jaw_width > self.jawwidth_rng[1]:
             raise ValueError("The jaw_width parameter is out of range!")
-        self.fk(motion_val=-jaw_width / 2.0)
+        self.fk(motion_val=jaw_width / 2.0)
 
     def get_jawwidth(self):
         return -self.lft.jnts[1]['motion_val'] * 2
@@ -229,12 +259,6 @@ class PGC(gp.GripperInterface):
                                     toggle_tcpcs=False,
                                     toggle_jntscs=toggle_jntscs,
                                     rgba=rgba).attach_to(meshmodel)
-        self.body.gen_meshmodel(tcp_jnt_id=tcp_jnt_id,
-                                tcp_loc_pos=tcp_loc_pos,
-                                tcp_loc_rotmat=tcp_loc_rotmat,
-                                toggle_tcpcs=False,
-                                toggle_jntscs=toggle_jntscs,
-                                rgba=rgba).attach_to(meshmodel)
         self.lft.gen_meshmodel(tcp_jnt_id=tcp_jnt_id,
                                tcp_loc_pos=tcp_loc_pos,
                                tcp_loc_rotmat=tcp_loc_rotmat,
@@ -276,7 +300,7 @@ class PGC(gp.GripperInterface):
         '''
         if jawwidth > self.jawwidth_rng[1]:
             raise ValueError("The jaw_width parameter is out of range!")
-        self.fk(motion_val=-jawwidth / 2.0)
+        self.fk(motion_val=jawwidth / 2.0)
 
 
 if __name__ == '__main__':
@@ -289,7 +313,8 @@ if __name__ == '__main__':
     # cm.CollisionModel("meshes/dual_realsense.stl", expand_radius=.001).attach_to(base)
     grpr = PGC(enable_cc=True)
     # grpr.gen_meshmodel().attach_to(base)
-    grpr.mg_close()
+    grpr.mg_open()
+    grpr.jaw_to(0.03)
     jawwidth = grpr.get_jawwidth()
     print(jawwidth)
     grpr.gen_meshmodel().attach_to(base)

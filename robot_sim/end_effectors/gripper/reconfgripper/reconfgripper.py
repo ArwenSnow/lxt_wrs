@@ -133,7 +133,7 @@ class reconfgripper(gp.GripperInterface):
             raise ValueError("The motion_val parameter is out of range!")
 
     def jaw_to(self, jaw_width):
-        jaw_width = jaw_width
+        self.jaw_width = jaw_width
         if jaw_width > self.jawwidth_rng[1]:
             raise ValueError("The jaw_width parameter is out of range!")
         self.fk(motion_val=-jaw_width / 2.0)
