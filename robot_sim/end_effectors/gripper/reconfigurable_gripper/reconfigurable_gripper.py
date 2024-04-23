@@ -7,106 +7,34 @@ from panda3d.core import CollisionNode, CollisionBox, Point3
 import robot_sim._kinematics.jlchain as jl
 import basis.robot_math as rm
 import robot_sim.end_effectors.gripper.gripper_interface as gp
-import drivers.devices.dynamixel_sdk.sdk_wrapper as mw
-import time
-import math
-import numpy as np
+import robot_sim.end_effectors.gripper.reconfgripper.reconfgripper as rg
+import robot_sim.end_effectors.gripper.PGC_300_60_W_S.PGC as PGC
 
 
-class reconfgripper(gp.GripperInterface):
+class reconfigurable_gripper(gp.GripperInterface):
 
-    def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), cdmesh_type='convex_hull', name='reconfgripper',
+    def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), cdmesh_type='convex_hull', name='maingripper',
                  enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, cdmesh_type=cdmesh_type, name=name)
         this_dir, this_filename = os.path.split(__file__)
         cpl_end_pos = self.coupling.jnts[-1]['gl_posq']
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
-        # gripper base
-        self.body = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(7), name='base')
-        self.body.jnts[1]['loc_pos'] = np.array([0, 0, 0])
-        self.body.jnts[2]['loc_pos'] = np.array([0, 0, 0.003])
-        self.body.jnts[3]['loc_pos'] = np.array([-0.0015, -0.0066, 0.00505])
-        self.body.jnts[4]['loc_pos'] = np.array([0, 0.0132, 0])
-        self.body.jnts[5]['loc_pos'] = np.array([.0015, -.0066, -.03105])
 
-        self.body.lnks[0]['name'] = "dianji"
-        self.body.lnks[0]['loc_pos'] = np.zeros(3)
-        self.body.lnks[0]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "dianji.stl"),
-                                                                 expand_radius=.001)
-        self.body.lnks[0]['rgba'] = [0.2, 0.2, 0.2, 1]
+        # main gripper
+        self.body = PGC.PGC(pos=cpl_end_pos, rotmat=cpl_end_rotmat,  name='body')
 
-        self.body.lnks[1]['name'] = "base"
-        self.body.lnks[1]['loc_pos'] = np.array([0, 0, 0])
-        self.body.lnks[1]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "base.stl"),
-                                                                 expand_radius=.001)
-        self.body.lnks[1]['rgba'] = [.37, .37, .37, 1]
-        self.body.lnks[2]['name'] = "chilun"
-        self.body.lnks[2]['loc_pos'] = np.array([0, 0, 0])
-        self.body.lnks[2]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "chilun.stl"),
-                                                                 expand_radius=.001)
-        self.body.lnks[2]['rgba'] = [.37, .37, .37, 1]
-        self.body.lnks[3]['name'] = "huagui1"
-        self.body.lnks[3]['loc_pos'] = np.array([0, 0, 0])
-        self.body.lnks[3]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "huagui.stl"),
-                                                                 expand_radius=.001)
-        self.body.lnks[3]['rgba'] = [.57, .57, .57, 1]
-        self.body.lnks[4]['name'] = "huagui2"
-        self.body.lnks[4]['loc_pos'] = np.array([0, 0, 0])
-        self.body.lnks[4]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "huagui.stl"),
-                                                                 expand_radius=.001)
-        self.body.lnks[4]['rgba'] = [.57, .57, .57, 1]
-        self.body.lnks[5]['name'] = "gripper base1"
-        self.body.lnks[5]['loc_pos'] = np.array([0, 0, 0])
-        self.body.lnks[5]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "gripper_base.stl"),
-                                                                 expand_radius=.001)
-        self.body.lnks[5]['rgba'] = [.57, .57, .57, 1]
+        # lft gripper
+        self.lft = rg.reconfgripper(pos=self.body.lft.jnts[3]['gl_posq'], rotmat=cpl_end_rotmat,  name='lft')
 
-        # lft finger
-        self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(2), name='lft_finger')
-        self.lft.jnts[1]['loc_pos'] = np.array([-.00436, 0.0106, 0.01389])
-        self.lft.jnts[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0,0)
-        self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [.0, .025]
-        self.lft.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
-        self.lft.jnts[2]['loc_pos'] = np.array([0, 0, 0])
-        self.lft.jnts[2]['loc_motionax'] = np.array([-1, 0, 0])
+        # rgt gripper
+        self.rgt = rg.reconfgripper(pos=self.body.rgt.jnts[3]['gl_posq'],
+                                    rotmat=np.dot(rm.rotmat_from_axangle([0, 0, 1], math.pi ), self.body.rgt.jnts[3 ]['gl_rotmatq']),
+                                    name='rgt')
 
-        self.lft.lnks[1]['name'] = "finger1"
-        self.lft.lnks[1]['mesh_file'] = cm.CollisionModel(
-            os.path.join(this_dir, "meshes", "gripper1.stl"), expand_radius=.001)
-        self.lft.lnks[1]['rgba'] = [.2, .2, .2, 1]
-        self.lft.lnks[2]['name'] = "huakuai1"
-        self.lft.lnks[2]['mesh_file'] = cm.CollisionModel(
-            os.path.join(this_dir, "meshes", "huakuai1.stl"), expand_radius=.001)
-        self.lft.lnks[2]['rgba'] = [.6, .6, .6, 1]
-
-        # rgt finger
-        self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(2), name='rgt_finger')
-        self.rgt.jnts[1]['loc_pos'] = np.array([-.00036,-.0106,.01389])
-        self.rgt.jnts[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, 0)
-        self.rgt.jnts[1]['type'] = 'prismatic'
-        self.rgt.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
-        self.rgt.jnts[2]['loc_pos'] = np.array([0, 0, 0])
-        self.rgt.jnts[2]['loc_motionax'] = np.array([1, 0, 0])
-
-        self.rgt.lnks[1]['name'] = "finger2"
-        self.rgt.lnks[1]['loc_pos'] = np.array([0, 0, 0])
-        self.rgt.lnks[1]['mesh_file'] = cm.CollisionModel(
-            os.path.join(this_dir, "meshes", "gripper2.stl"), expand_radius=.001)
-        self.rgt.lnks[1]['rgba'] = [.2, .2, .2, 1]
-        self.rgt.lnks[2]['name'] = "huakuai2"
-        self.rgt.lnks[2]['mesh_file'] = cm.CollisionModel(
-            os.path.join(this_dir, "meshes", "huakuai2.stl"),expand_radius=.001)
-        self.rgt.lnks[2]['rgba'] = [.6, .6, .6, 1]
-
-        # reinitialize
-        self.body.reinitialize()
-        self.lft.reinitialize()
-        self.rgt.reinitialize()
-        # jaw width
-        self.jawwidth_rng = [0.0, .028]
-        # jaw center
-        self.jaw_center_pos = np.array([0, 0, .3])
+        # # jaw width
+        # self.jawwidth_rng = [0.0, .06]
+        # # jaw center
+        # self.jaw_center_pos = np.array([0, 0, .133])
 
 
     def fix_to(self, pos, rotmat):
@@ -115,7 +43,7 @@ class reconfgripper(gp.GripperInterface):
         self.coupling.fix_to(self.pos, self.rotmat)
         cpl_end_pos = self.coupling.jnts[-1]['gl_posq']
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
-        self.body.fix_to(cpl_end_pos, cpl_end_rotmat)
+        self.lft.fix_to(cpl_end_pos, cpl_end_rotmat)
         self.lft.fix_to(cpl_end_pos, cpl_end_rotmat)
         self.rgt.fix_to(cpl_end_pos, cpl_end_rotmat)
 
@@ -133,7 +61,6 @@ class reconfgripper(gp.GripperInterface):
             raise ValueError("The motion_val parameter is out of range!")
 
     def jaw_to(self, jaw_width):
-        jaw_width = jaw_width
         if jaw_width > self.jawwidth_rng[1]:
             raise ValueError("The jaw_width parameter is out of range!")
         self.fk(motion_val=-jaw_width / 2.0)
@@ -226,47 +153,6 @@ class reconfgripper(gp.GripperInterface):
         return meshmodel
 
 
-    def lg_open(self):
-        '''
-        Open left gripper
-        '''
-        self.jaw_to(.028)
-
-
-    def lg_close(self):
-        '''
-        Close left gripper
-        '''
-        self.jaw_to(0)
-
-
-    def rg_open(self):
-        '''
-        Open right gripper
-        '''
-        self.jaw_to(.028)
-
-
-    def rg_close(self):
-        '''
-        Close right gripper
-        '''
-        self.jaw_to(0)
-
-    def rg_jaw_to(self, jaw_width):
-        '''
-        Right gripper jaws to "jaw_width"
-        '''
-        if jaw_width > self.jawwidth_rng[1]:
-            raise ValueError("The jaw_width parameter is out of range!")
-        self.fk(motion_val=-jaw_width / 2.0)
-    def lg_jaw_to(self, jaw_width):
-        '''
-        left gripper jaws to "jaw_width"
-        '''
-        if jaw_width > self.jawwidth_rng[1]:
-            raise ValueError("The jaw_width parameter is out of range!")
-        self.fk(motion_val=-jaw_width / 2.0)
 
 
 if __name__ == '__main__':
@@ -275,9 +161,10 @@ if __name__ == '__main__':
 
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
-    grpr = reconfgripper()
+    grpr = reconfigurable_gripper()
+    grpr.body.mg_open()
+    grpr.lft.lg_open()
+    grpr.rgt.rg_open()
     # grpr.gen_meshmodel().attach_to(base)
-    grpr.jaw_to(.028)
     grpr.gen_meshmodel().attach_to(base)
     base.run()
-

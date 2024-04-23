@@ -17,13 +17,19 @@ class Gripperhelper(object):
             self.gripper_r.set_dxl_op_mode(control_mode, dxl_id=1)
             self.gripper_r.enable_dxl_torque(dxl_id=1)
             self.gripper_r.get_dxl_pos(dxl_id=1)
-            self.gripper_r.set_dxl_pro_vel(30, dxl_id=1)
-            self.gripper_r.set_dxl_current_limit(current_limit=10,dxl_id=1)
+            self.lg_set_force()
+            self.lg_set_vel()
         else:
             print("please set real gripper on")
 
+    def lg_set_force(self):
+        '''
+        set the force for lft gripper
+        '''
+        self.gripper_r.set_dxl_current_limit(current_limit=10,dxl_id=1)
 
-
+    def lg_set_vel(self):
+        self.gripper_r.set_dxl_pro_vel(10, dxl_id=1)
     def go_open(self):
         self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=1)
         time.sleep(5)

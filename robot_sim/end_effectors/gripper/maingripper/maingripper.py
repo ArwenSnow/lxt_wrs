@@ -138,7 +138,7 @@ class maingripper(gp.GripperInterface):
 
         self.rgt.lnks[1]['name'] = "zhijianzujian2"
         self.rgt.lnks[1]['loc_pos'] = np.array([0,0,0])
-        self.rgt.lnks[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, math.pi *1)
+        self.rgt.lnks[1]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, math.pi *1/2)
         self.rgt.lnks[1]['collision_model'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "zhijian.stl"),
                                                                 expand_radius=.001)
         self.rgt.lnks[1]['rgba'] = [.57, .57, .57, 1]
@@ -319,6 +319,8 @@ class maingripper(gp.GripperInterface):
                              type="round").attach_to(meshmodel)
             gm.gen_mycframe(pos=jaw_center_gl_pos, rotmat=jaw_center_gl_rotmat).attach_to(meshmodel)
         return meshmodel
+
+
 
 
 if __name__ == '__main__':
