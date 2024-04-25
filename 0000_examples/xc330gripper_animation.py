@@ -4,17 +4,16 @@ import modeling.collision_model as cm
 import math
 import numpy as np
 import basis.robot_math as rm
-import robot_sim.end_effectors.gripper.maingripper.maingripper as mg
+import robot_sim.end_effectors.gripper.xc330gripper1.xc330gripper1 as xc
 
 base = wd.World(cam_pos=[1, 1, .5], lookat_pos=[0, 0, .2])
 gm.gen_frame().attach_to(base)
-gripper = mg.maingripper()
+gripper = xc.xc330gripper()
 
 counter = [0]
 flag = [0]
-jawwidth_rng = np.linspace(0.0, 0.06, 10)
+jawwidth_rng = np.linspace(0.0, 0.028, 14)
 gripper_mesh = []
-
 
 def update(jawwidth_rng, counter, flag, task):
     for model in gripper_mesh:
