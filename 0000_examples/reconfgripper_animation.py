@@ -4,7 +4,7 @@ import modeling.collision_model as cm
 import math
 import numpy as np
 import basis.robot_math as rm
-import robot_sim.end_effectors.gripper.reconfgripper.reconfgripper as rg
+import robot_sim.end_effectors.gripper.xc330gripper.xc330gripper as rg
 
 base = wd.World(cam_pos=[1, 1, .5], lookat_pos=[0, 0, .2])
 gm.gen_frame().attach_to(base)

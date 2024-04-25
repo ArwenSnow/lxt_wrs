@@ -6,7 +6,7 @@ import modeling.collision_model as cm
 from panda3d.core import CollisionNode, CollisionBox, Point3
 import robot_sim._kinematics.jlchain as jl
 import basis.robot_math as rm
-import robot_sim.end_effectors.gripper.reconfgripper.reconfgripper as gr
+import robot_sim.end_effectors.gripper.xc330gripper.xc330gripper as gr
 import robot_con.reconfgripper.gripperhelper as gh
 import robot_sim.end_effectors.gripper.gripper_interface as gp
 import drivers.devices.dynamixel_sdk.sdk_wrapper as mw

@@ -285,7 +285,7 @@ class maingripper(gp.GripperInterface):
                       toggle_tcpcs=False,
                       toggle_jntscs=False,
                       rgba=None,
-                      name='reconfgripper'):
+                      name='xc330gripper'):
         meshmodel = mc.ModelCollection(name=name)
         self.coupling.gen_meshmodel(tcp_loc_pos=None,
                                     tcp_loc_rotmat=None,
