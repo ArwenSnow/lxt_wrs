@@ -32,9 +32,9 @@ class PGC(gp.GripperInterface):
         self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "base.stl")
         self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
 
-        self.lft.jnts[1]['loc_pos'] = np.array([.0062, -.01635, .1403])
+        self.lft.jnts[1]['loc_pos'] = np.array([.00096, -.01635, .1403])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [0, .03]
+        self.lft.jnts[1]['motion_rng'] = [0, .03524]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[1]['name'] = "finger1"
         self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip1.stl")
@@ -46,7 +46,7 @@ class PGC(gp.GripperInterface):
 
         #rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
-        self.rgt.jnts[1]['loc_pos'] = np.array([-.0062,.01635,.1403])
+        self.rgt.jnts[1]['loc_pos'] = np.array([-.00096,.01635,.1403])
         self.rgt.jnts[1]['type'] = 'prismatic'
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
         self.rgt.lnks[1]['name'] = "finger2"
@@ -65,7 +65,7 @@ class PGC(gp.GripperInterface):
         self.enable_cc(toggle_cdprimit=enable_cc)
 
         # jaw width
-        self.jawwidth_rng = [0.0, .9]
+        self.jawwidth_rng = [0.0, .7048]
         # jaw center
         self.jaw_center_pos = np.array([0, 0, .133]) + coupling_offset_pos
         # collision detection
@@ -238,7 +238,7 @@ class PGC(gp.GripperInterface):
         '''
         Main gripper open
         '''
-        self.jaw_to(.06)
+        self.jaw_to(.07048)
 
     def mg_close(self):
         '''
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     # cm.CollisionModel("meshes/dual_realsense.stl", expand_radius=.001).attach_to(base)
     grpr = PGC(enable_cc=True)
     # grpr.gen_meshmodel().attach_to(base)
-    grpr.mg_open()
+    grpr.mg_close()
     # grpr.jaw_to(0.03)
     jawwidth = grpr.get_jawwidth()
     print(jawwidth)

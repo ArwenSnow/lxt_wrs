@@ -201,8 +201,8 @@ class reconfgripper(gp.GripperInterface):
         '''
         Open left gripper
         '''
-        self.body.jaw_to(.060)
-        self.fk("main", 0.060)
+        self.body.jaw_to(.07048)
+        self.fk("main", 0.07048)
 
 
     def mg_close(self):
@@ -239,7 +239,7 @@ if __name__ == '__main__':
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
     grpr = reconfgripper()
-    # grpr.mg_open()
+    grpr.mg_open()
     # grpr.lg_close()
     # grpr.rg_close()
     jawwidth = grpr.get_jawwidth(g = "m")
