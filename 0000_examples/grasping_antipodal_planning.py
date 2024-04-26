@@ -16,11 +16,12 @@ gripper_s = yg.YumiGripper()
 grasp_info_list = gpa.plan_grasps(gripper_s, object_tube,
                                   angle_between_contact_normals=math.radians(177),
                                   openning_direction='loc_x',
-                                  max_samples=15, min_dist_between_sampled_contact_points=.005,
+                                  max_samples=5, min_dist_between_sampled_contact_points=.005,
                                   contact_offset=.005)
 gpa.write_pickle_file('holder', grasp_info_list, './', 'cobg_holder_grasps.pickle')
+# grasp_info_list = gpa.load_pickle_file('holder', './', 'cobg_holder_grasps.pickle')
 for grasp_info in grasp_info_list:
     jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
     gripper_s.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)
-    gripper_s.gen_meshmodel().attach_to(base)
+    gripper_s.gen_meshmodel(rgba=[0,1,0,0.01]).attach_to(base)
 base.run()
