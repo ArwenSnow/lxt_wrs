@@ -30,6 +30,7 @@ class Gripperhelper(object):
 
     def lg_set_vel(self):
         self.gripper_r.set_dxl_pro_vel(10, dxl_id=1)
+
     def go_open(self):
         self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=1)
         time.sleep(5)

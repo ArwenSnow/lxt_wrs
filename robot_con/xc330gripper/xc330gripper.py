@@ -1,35 +1,9 @@
 from time import sleep
-import drivers.devices.dh.dh_modbus_gripper as dh_modbus_gripper
 import drivers.devices.dynamixel_sdk.sdk_wrapper as dxl
 
-class Reconfgripper():
-    # def __init__(self,  com, baudrate):
-    #     self.sub_gripper=dxl.DynamixelMotor(com, baudrate, toggle_group_sync_write=True)
-    #     # self.m_gripper = dh.DIOAODIFOAIJF()
-    def __init__(self, port = 'com3', baudrate = 57600, force = 10, speed = 10):
-        port = port
-        baudrate = baudrate
-        initstate = 0
-        # g_state = 0
-        force = force
-        speed = speed
-        self.m_gripper = dh_modbus_gripper.dh_modbus_gripper()
-        self.m_gripper.open(port, baudrate)
-        self.init_gripper()
-        while (initstate != 1):
-            initstate = self.m_gripper.GetInitState()
-            sleep(0.2)
-        self.m_gripper.SetTargetPosition(500)
-        self.set_speed(speed)
-        self.set_force(force)
-
-    def init_gripper(self):
-        self.m_gripper.Initialization()
-        print('Send grip init')
-
-    def set_sdk_griper(self, gripper, com, peripheral_baud, real=False):
+class xc330gripper(object):
+    def __init__(self, gripper, com, peripheral_baud, real=False):
         self.gripper = gripper
-        print('gripper helper')
         self.real = real
         self.com = com
         self.peripheral_baud = peripheral_baud
@@ -47,6 +21,7 @@ class Reconfgripper():
         else:
             print("please set real gripper on")
 
+
     def lg_set_force(self):
         '''
         set the force for lft gripper
@@ -54,7 +29,7 @@ class Reconfgripper():
         self.gripper_r.set_dxl_current_limit(current_limit=10,dxl_id=1)
 
 
-    def lg_set_vel(self, vel):
+    def lg_set_vel(self):
         '''
         set the max vel for lft gripper
         '''
@@ -68,23 +43,11 @@ class Reconfgripper():
         self.gripper_r.set_dxl_current_limit(current_limit=10,dxl_id=2)
 
 
-    def rg_set_vel(self, vel):
+    def rg_set_vel(self):
         '''
         set the max vel for lft gripper
         '''
         self.gripper_r.set_dxl_pro_vel(10, dxl_id=2)
-
-    def mg_set_force(self, force):
-        '''
-        set the force for main gripper
-        '''
-        self.m_gripper.SetTargetForce(force)
-
-    def mg_set_vel(self, vel):
-        '''
-        set the max vel for main gripper
-        '''
-        self.m_gripper.SetTargetSpeed(vel)
 
 
     def lg_open(self):
@@ -107,7 +70,7 @@ class Reconfgripper():
         '''
         Open right gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=2)
         sleep(5)
 
 
@@ -115,36 +78,33 @@ class Reconfgripper():
         '''
         Close right gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1976, dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=1976, dxl_id=2)
         sleep(5)
+
+
+    def move_line(self,wide):
+        encoder = int(-32714 * wide + 1976)
+        print(encoder)
+        return encoder
 
 
     def lg_jaw_to(self, jawwidth):
         '''
         left gripper jaws to "jawwidth"
         '''
-        pass
+        pos = self.move_line(jawwidth)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=pos, dxl_id=1)
+        sleep(0.02)
 
 
     def rg_jaw_to(self, jawwidth):
         '''
         Right gripper jaws to "jawwidth"
         '''
-        pass
+        pos = self.move_line(jawwidth)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=pos, dxl_id=2)
+        sleep(0.02)
 
-
-    def mg_open(self):
-        '''
-        Main gripper open
-        '''
-
-        pass
-
-    def mg_close(self):
-        '''
-        Main gripper open
-        '''
-        pass
 
     def conv2encoder(self, jawwidth):
         a = int(jawwidth * 1000 / 0.06)
@@ -173,8 +133,20 @@ class Reconfgripper():
         '''
         pass
 
-    def mg_get_jawwidth(self):
-        '''
-        Get current jawwidth of main gripper
-        '''
-        pass
+
+
+
+    def move_con(self, realwide):
+        pos = self.move_line(realwide)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=pos, dxl_id=1)
+        sleep(0.02)
+
+    def current_stop(self):
+        last_position = self.gripper_r.get_dxl_pos(dxl_id=1)
+        sleep(0.02)
+        new_position = self.gripper_r.get_dxl_pos(dxl_id=1)
+        while(last_position != new_position):
+            last_position = new_position
+            sleep(0.02)
+            new_position = self.gripper_r.get_dxl_pos(dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=new_position, dxl_id=1)

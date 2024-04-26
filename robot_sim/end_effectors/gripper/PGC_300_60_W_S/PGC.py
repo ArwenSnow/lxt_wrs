@@ -65,7 +65,7 @@ class PGC(gp.GripperInterface):
         self.enable_cc(toggle_cdprimit=enable_cc)
 
         # jaw width
-        self.jawwidth_rng = [0.0, .7048]
+        self.jawwidth_rng = [0.0, .07048]
         # jaw center
         self.jaw_center_pos = np.array([0, 0, .133]) + coupling_offset_pos
         # collision detection
