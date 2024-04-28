@@ -51,7 +51,7 @@ class xc330gripper(gp.GripperInterface):
         self.rgt.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "rgt.stl")
         self.rgt.lnks[1]['rgba'] = [.5, .5, .5, 1]
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, .033]) + coupling_offset_pos
+        self.jaw_center_pos = np.array([-.00236, 0, .056735]) + coupling_offset_pos
         # reinitialize
         self.lft.reinitialize()
         self.rgt.reinitialize()

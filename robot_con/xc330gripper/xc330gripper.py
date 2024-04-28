@@ -9,15 +9,18 @@ class xc330gripper(object):
         self.peripheral_baud = peripheral_baud
         self.init_real_gripper()
 
+
     def init_real_gripper(self):
         if self.real:
-            self.gripper_r = dxl.DynamixelMotor(self.com, baud_rate=self.peripheral_baud)
+            self.gripper_r = dxl.DynamixelMotor(self.com, baud_rate=self.peripheral_baud,
+                                              toggle_group_sync_write=True)
+            id_list = [0, 1]
             control_mode = 5
-            self.gripper_r.set_dxl_op_mode(control_mode, dxl_id=1)
-            self.gripper_r.enable_dxl_torque(dxl_id=1)
-            self.gripper_r.get_dxl_pos(dxl_id=1)
-            self.lg_set_force()
-            self.lg_set_vel()
+            for i in id_list:
+                self.gripper_r.set_dxl_op_mode(control_mode, i)
+                self.gripper_r.enable_dxl_torque(i)
+                self.gripper_r.get_dxl_pos(i)
+                self.gripper_r.set_dxl_pro_vel(10, i)
         else:
             print("please set real gripper on")
 
@@ -40,21 +43,21 @@ class xc330gripper(object):
         '''
         set the force for lft gripper
         '''
-        self.gripper_r.set_dxl_current_limit(current_limit=10,dxl_id=2)
+        self.gripper_r.set_dxl_current_limit(current_limit=10,dxl_id=0)
 
 
     def rg_set_vel(self):
         '''
         set the max vel for lft gripper
         '''
-        self.gripper_r.set_dxl_pro_vel(10, dxl_id=2)
+        self.gripper_r.set_dxl_pro_vel(10, dxl_id=0)
 
 
     def lg_open(self):
         '''
         Open left gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=1067, dxl_id=1)
         sleep(5)
 
 
@@ -62,7 +65,7 @@ class xc330gripper(object):
         '''
         Close left gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1976, dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=1980, dxl_id=1)
         sleep(5)
 
 
@@ -70,7 +73,7 @@ class xc330gripper(object):
         '''
         Open right gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1060, dxl_id=2)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=1175, dxl_id=0)
         sleep(5)
 
 
@@ -78,21 +81,25 @@ class xc330gripper(object):
         '''
         Close right gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1976, dxl_id=2)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=2114, dxl_id=0)
         sleep(5)
 
 
-    def move_line(self,wide):
-        encoder = int(-32714 * wide + 1976)
+    def lg_move_line(self,wide):
+        encoder = int(-32607 * wide + 1980)
         print(encoder)
         return encoder
 
+    def rg_move_line(self,wide):
+        encoder = int(-33536 * wide + 2114)
+        print(encoder)
+        return encoder
 
     def lg_jaw_to(self, jawwidth):
         '''
         left gripper jaws to "jawwidth"
         '''
-        pos = self.move_line(jawwidth)
+        pos = self.lg_move_line(jawwidth)
         self.gripper_r.set_dxl_goal_pos(tgt_pos=pos, dxl_id=1)
         sleep(0.02)
 
@@ -101,45 +108,40 @@ class xc330gripper(object):
         '''
         Right gripper jaws to "jawwidth"
         '''
-        pos = self.move_line(jawwidth)
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=pos, dxl_id=2)
+        pos = self.rg_move_line(jawwidth)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=pos, dxl_id=0)
         sleep(0.02)
 
-
-    def conv2encoder(self, jawwidth):
-        a = int(jawwidth * 1000 / 0.06)
-        return a
-
-    def mg_jaw_to(self, jawwidth):
+    def sync_jaw_to(self, rg_jawwidth , lg_jawwidth):
         '''
-        Main gripper jaws to "jawwidth"
+        Synchronize left gripper to jaws to "lg_jawwidth" and Right gripper jaws to "rg_jawwidth"
         '''
-        self.m_gripper.SetTargetPosition(self.conv2encoder(jawwidth))
-        g_state = 0
-        while (g_state == 0):
-            g_state = self.m_gripper.GetGripState()
-            sleep(0.2)
-        pass
+        lg_pos = self.lg_move_line(lg_jawwidth)
+        rg_pos = self.rg_move_line(rg_jawwidth)
+        self.gripper_r.set_dxl_goal_pos_sync(tgt_pos_list=[rg_pos,lg_pos], dxl_id_list=[0,1])
+        sleep(0.02)
+
 
     def lg_get_jawwidth(self):
         '''
         Get current jawwidth of lft gripper
         '''
-        pass
+        encoder = self.gripper_r.get_dxl_pos(1)
+        jawwidth = (encoder-1980)/-32607
+        jawwidth = round(jawwidth,3)
+        return jawwidth
+
 
     def rg_get_jawwidth(self):
         '''
         Get current jawwidth of right gripper
         '''
-        pass
+        encoder = self.gripper_r.get_dxl_pos(0)
+        jawwidth = (encoder-2114)/-33536
+        jawwidth = round(jawwidth,3)
+        return jawwidth
+        # return encoder
 
-
-
-
-    def move_con(self, realwide):
-        pos = self.move_line(realwide)
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=pos, dxl_id=1)
-        sleep(0.02)
 
     def current_stop(self):
         last_position = self.gripper_r.get_dxl_pos(dxl_id=1)
@@ -150,3 +152,7 @@ class xc330gripper(object):
             sleep(0.02)
             new_position = self.gripper_r.get_dxl_pos(dxl_id=1)
         self.gripper_r.set_dxl_goal_pos(tgt_pos=new_position, dxl_id=1)
+
+
+    def disable_torque(self, id):
+        self.gripper_r.disable_dxl_torque(dxl_id=id)

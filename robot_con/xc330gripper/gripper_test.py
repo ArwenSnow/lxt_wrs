@@ -7,12 +7,13 @@ if __name__ == '__main__':
     peripheral_baud = 57600
     com = 'COM3'
     ghw = gh.xc330gripper(gripper, com, peripheral_baud, real=True)
-    ghw.lg_open()
-    ghw.lg_close()
-    jawwidth = .01
-    ghw.move_con(jawwidth)
+    # ghw.lg_open()
+    # ghw.lg_close()
+    lg_jawwidth = .025
+    rg_jawwidth = .028
+    ghw.sync_jaw_to( rg_jawwidth , lg_jawwidth)
     ghw.current_stop()
-    # gripper.jaw_to(realwide)
-    # gripper.gen_meshmodel().attach_to(base)
-
-    # base.run()
+    a = ghw.lg_get_jawwidth()
+    b = ghw.rg_get_jawwidth()
+    print(a)
+    print(b)
