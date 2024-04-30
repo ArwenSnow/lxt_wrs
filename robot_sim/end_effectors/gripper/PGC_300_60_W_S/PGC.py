@@ -56,7 +56,7 @@ class PGC(gp.GripperInterface):
         self.rgt.jnts[2]['loc_rotmat']=rm.rotmat_from_euler(0, 0, math.pi)
 
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, .14]) + coupling_offset_pos
+        self.jaw_center_pos = np.array([0, 0, .133]) + coupling_offset_pos
         # reinitialize
         self.lft.reinitialize()
         self.rgt.reinitialize()

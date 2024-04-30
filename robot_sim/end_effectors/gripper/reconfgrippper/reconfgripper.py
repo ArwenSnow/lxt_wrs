@@ -161,8 +161,7 @@ class reconfgripper(gp.GripperInterface):
         '''
         Open left gripper
         '''
-        self.fk()
-        self.jawwidth = 0.028
+        self.lft.jaw_to(.028)
 
 
     def lg_close(self):
@@ -240,8 +239,8 @@ if __name__ == '__main__':
     gm.gen_frame().attach_to(base)
     grpr = reconfgripper()
     grpr.mg_open()
-    # grpr.lg_close()
-    # grpr.rg_close()
+    grpr.lg_open()
+    grpr.rg_open()
     jawwidth = grpr.get_jawwidth(g = "m")
     print(jawwidth)
     grpr.gen_meshmodel().attach_to(base)

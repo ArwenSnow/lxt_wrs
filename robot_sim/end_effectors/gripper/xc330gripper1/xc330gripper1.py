@@ -33,7 +33,7 @@ class xc330gripper(gp.GripperInterface):
         self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
         self.lft.jnts[1]['loc_pos'] = np.array([-.00636,.015,.04199])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [0, .025]
+        self.lft.jnts[1]['motion_rng'] = [0, .014]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[0]['name'] = "body"
         self.lft.lnks[0]['loc_pos'] = np.zeros(3)

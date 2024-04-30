@@ -107,7 +107,7 @@ class xc330gripper(gp.GripperInterface):
     def jaw_to(self, jaw_width):
         if jaw_width > .028:
             raise ValueError("The jawwidth parameter is out of range!")
-        self.fk(motion_val=(0.028 - jaw_width) / 2.0)
+        self.fk(motion_val=( jaw_width) / 2.0)
 
     def get_jawwidth(self):
         return self.lft.jnts[1]['motion_val'] * 2
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     #     grpr.fk(angle)
     #     grpr.gen_meshmodel().attach_to(base)
     grpr = xc330gripper()
-    grpr.jaw_to(.0)
+    grpr.jaw_to(.028)
     grpr.gen_meshmodel().attach_to(base)
     # grpr.gen_stickmodel(togglejntscs=False).attach_to(base)
     grpr.fix_to(pos=np.array([0, .2, .2]), rotmat=rm.rotmat_from_axangle([1, 0, 0], .05))
