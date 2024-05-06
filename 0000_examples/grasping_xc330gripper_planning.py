@@ -1,6 +1,4 @@
 import math
-import numpy as np
-import basis.robot_math as rm
 import visualization.panda.world as wd
 import modeling.geometric_model as gm
 import modeling.collision_model as cm
@@ -11,33 +9,21 @@ base = wd.World(cam_pos=[1, 1, 1], lookat_pos=[0, 0, 0])
 gm.gen_frame().attach_to(base)
 
 # object
-object = cm.CollisionModel("objects/finger.stl")
+object = cm.CollisionModel("objects/box_text.stl")
 object.set_rgba([.9, .75, .35, 1])
 object.attach_to(base)
 
 # hnd_s
 gripper_s = xc.xc330gripper()
-
-# grasp_info
-jaw_center_pos = np.zeros(3)
-jaw_center_rotmat = np.eye(3)
-contact_offset = .0025
-jaw_width = .008 + contact_offset*2
-angle_increment = math.pi*45/180
-grasp_info_list = []
-
-for i in range(8):
-    jaw_center_rotmat = np.dot(rm.rotmat_from_axangle([1, 0, 0], i*angle_increment ),jaw_center_rotmat)
+grasp_info_list = gpa.plan_grasps(gripper_s, object,
+                                  angle_between_contact_normals=math.radians(160),
+                                  openning_direction='loc_x',
+                                  max_samples=5, min_dist_between_sampled_contact_points=.005,
+                                  contact_offset=.001)
+gpa.write_pickle_file('holder', grasp_info_list, './', 'cobg_holder_grasps.pickle')
+# grasp_info_list = gpa.load_pickle_file('holder', './', 'cobg_holder_grasps.pickle')
+for grasp_info in grasp_info_list:
+    jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
     gripper_s.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)
     gripper_s.gen_meshmodel(rgba=[0, 1, 0, .3]).attach_to(base)
-    grasp_info_list.append({
-        'position': jaw_center_pos,
-        'rotation': jaw_center_rotmat,
-        'width': jaw_width
-    })
 base.run()
-
-print("grasp_info_list:")
-for info in grasp_info_list:
-    print(f"Position: {info['position']}, Rotation: {info['rotation']}, Width: {info['width']}")
-
