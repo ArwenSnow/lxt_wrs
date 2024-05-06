@@ -2,7 +2,7 @@ from time import sleep
 import drivers.devices.dh.dh_modbus_gripper as dh
 
 class maingripper():
-    def __init__(self, port = 'com3', baudrate = 57600, force = 100, speed = 100):
+    def __init__(self, port = 'com3', baudrate = 115200, force = 10, speed = 10):
         port = port
         baudrate = baudrate
         initstate = 0
@@ -71,3 +71,6 @@ class maingripper():
         Get current jawwidth of main gripper
         '''
         pass
+
+mg = maingripper()
+mg.mg_close()

@@ -33,7 +33,7 @@ class xc330gripper(gp.GripperInterface):
         self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
         self.lft.jnts[1]['loc_pos'] = np.array([-.00636,.015,.04199])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [0, .025]
+        self.lft.jnts[1]['motion_rng'] = [0, .014]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[0]['name'] = "body"
         self.lft.lnks[0]['loc_pos'] = np.zeros(3)
@@ -51,7 +51,7 @@ class xc330gripper(gp.GripperInterface):
         self.rgt.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "rgt.stl")
         self.rgt.lnks[1]['rgba'] = [.5, .5, .5, 1]
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, .033]) + coupling_offset_pos
+        self.jaw_center_pos = np.array([-.00236, 0, .056735]) + coupling_offset_pos
         # reinitialize
         self.lft.reinitialize()
         self.rgt.reinitialize()
@@ -192,6 +192,8 @@ if __name__ == '__main__':
     grpr.gen_meshmodel().attach_to(base)
     # grpr.gen_stickmodel(togglejntscs=False).attach_to(base)
     grpr.fix_to(pos=np.array([0, .2, .2]), rotmat=rm.rotmat_from_axangle([1, 0, 0], .05))
+    jawwidth = grpr.get_jawwidth()
+    print(jawwidth)
     grpr.gen_meshmodel().attach_to(base)
     grpr.show_cdmesh()
     grpr.show_cdprimit()
