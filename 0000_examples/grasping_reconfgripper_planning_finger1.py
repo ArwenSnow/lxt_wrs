@@ -37,14 +37,16 @@ angle_increment = math.pi*45/180
 for i in range(8):
     jaw_center_rotmat = np.dot(rm.rotmat_from_axangle([1, 0, 0], i*angle_increment ),jaw_center_rotmat)
     gripper.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)
-    gripper.gen_meshmodel(rgba=[0, 1, 0, .3]).attach_to(base)
+    gripper.gen_meshmodel(rgba=[0, 1, 0, 1]).attach_to(base)
 
     if g == 'lgt':
         m_rotmat = jaw_center_rotmat
+        gripper_m.lg_jaw_to(jaw_width)
     elif g == 'rgt':
         m_rotmat = np.dot(rm.rotmat_from_axangle([0, 0, 1], math.pi * 1), b)
         m_rotmat = jaw_center_rotmat.dot(m_rotmat)
-    m_pos = np.array([-.06024, 0, -.19403]) + gripper.rotmat.dot(a)
+        gripper_m.rg_jaw_to(jaw_width)
+    m_pos = np.array([-.06324, 0, -.19273]) + gripper.rotmat.dot(a)
     m_pos = jaw_center_pos + jaw_center_rotmat.dot(m_pos)
     gripper_m.fix_to(m_pos, m_rotmat)
     gripper_m.mg_open()

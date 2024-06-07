@@ -22,6 +22,12 @@ grasp_info_list = gpa.plan_grasps(gripper_s, object,
                                   contact_offset=.001)
 gpa.write_pickle_file('holder', grasp_info_list, './', 'cobg_holder_grasps.pickle')
 # grasp_info_list = gpa.load_pickle_file('holder', './', 'cobg_holder_grasps.pickle')
+
+# grasp_info = grasp_info_list[0]
+# jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
+# gripper_s.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)
+# gripper_s.gen_meshmodel(rgba=[0, 1, 0, 1]).attach_to(base)
+
 for grasp_info in grasp_info_list:
     jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
     gripper_s.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)

@@ -2,7 +2,7 @@ from time import sleep
 import drivers.devices.dynamixel_sdk.sdk_wrapper as dxl
 
 class xc330gripper(object):
-    def __init__(self, gripper, com, peripheral_baud, real=False):
+    def __init__(self, gripper, com, peripheral_baud, real=True):
         self.gripper = gripper
         self.real = real
         self.com = com
@@ -25,39 +25,40 @@ class xc330gripper(object):
             print("please set real gripper on")
 
 
+
     def lg_set_force(self):
         '''
         set the force for lft gripper
         '''
-        self.gripper_r.set_dxl_current_limit(current_limit=10,dxl_id=1)
+        self.gripper_r.set_dxl_current_limit(current_limit=1,dxl_id=1)
 
 
     def lg_set_vel(self):
         '''
         set the max vel for lft gripper
         '''
-        self.gripper_r.set_dxl_pro_vel(10, dxl_id=1)
+        self.gripper_r.set_dxl_pro_vel(30, dxl_id=1)
 
 
     def rg_set_force(self):
         '''
         set the force for lft gripper
         '''
-        self.gripper_r.set_dxl_current_limit(current_limit=10,dxl_id=0)
+        self.gripper_r.set_dxl_current_limit(current_limit=5,dxl_id=0)
 
 
     def rg_set_vel(self):
         '''
         set the max vel for lft gripper
         '''
-        self.gripper_r.set_dxl_pro_vel(10, dxl_id=0)
+        self.gripper_r.set_dxl_pro_vel(20, dxl_id=0)
 
 
     def lg_open(self):
         '''
         Open left gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1067, dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=2790, dxl_id=1)
         sleep(5)
 
 
@@ -65,7 +66,7 @@ class xc330gripper(object):
         '''
         Close left gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1980, dxl_id=1)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=3707, dxl_id=1)
         sleep(5)
 
 
@@ -73,7 +74,7 @@ class xc330gripper(object):
         '''
         Open right gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=1175, dxl_id=0)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=1862, dxl_id=0)
         sleep(5)
 
 
@@ -81,17 +82,17 @@ class xc330gripper(object):
         '''
         Close right gripper
         '''
-        self.gripper_r.set_dxl_goal_pos(tgt_pos=2114, dxl_id=0)
+        self.gripper_r.set_dxl_goal_pos(tgt_pos=2785, dxl_id=0)
         sleep(5)
 
 
     def lg_move_line(self,wide):
-        encoder = int(-32607 * wide + 1980)
+        encoder = int(-32750 * wide + 3707)
         print(encoder)
         return encoder
 
     def rg_move_line(self,wide):
-        encoder = int(-33536 * wide + 2114)
+        encoder = int(-32964 * wide + 2785)
         print(encoder)
         return encoder
 
@@ -127,7 +128,7 @@ class xc330gripper(object):
         Get current jawwidth of lft gripper
         '''
         encoder = self.gripper_r.get_dxl_pos(1)
-        jawwidth = (encoder-1980)/-32607
+        jawwidth = (encoder-3707)/-32750
         jawwidth = round(jawwidth,3)
         return jawwidth
 
@@ -137,7 +138,7 @@ class xc330gripper(object):
         Get current jawwidth of right gripper
         '''
         encoder = self.gripper_r.get_dxl_pos(0)
-        jawwidth = (encoder-2114)/-33536
+        jawwidth = (encoder-2785)/-32964
         jawwidth = round(jawwidth,3)
         return jawwidth
         # return encoder
@@ -156,3 +157,12 @@ class xc330gripper(object):
 
     def disable_torque(self, id):
         self.gripper_r.disable_dxl_torque(dxl_id=id)
+
+
+
+    def init(self):
+        self.sync_jaw_to(0, 0)
+        sleep(2)
+        self.sync_jaw_to(.028, .028)
+        sleep(3)
+

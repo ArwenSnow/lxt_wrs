@@ -86,12 +86,12 @@ class reconfgripper(gp.GripperInterface):
                                      tcp_loc_rotmat=None,
                                      toggle_tcpcs=False,
                                      toggle_jntscs=toggle_jntscs).attach_to(stickmodel)
-        self.body.gen_stickmodel(tcp_jnt_id=tcp_jnt_id,
-                                 tcp_loc_pos=tcp_loc_pos,
-                                 tcp_loc_rotmat=tcp_loc_rotmat,
-                                 toggle_tcpcs=False,
-                                 toggle_jntscs=toggle_jntscs,
-                                 toggle_connjnt=toggle_connjnt).attach_to(stickmodel)
+        # self.body.gen_stickmodel(tcp_jnt_id=tcp_jnt_id,
+        #                          tcp_loc_pos=tcp_loc_pos,
+        #                          tcp_loc_rotmat=tcp_loc_rotmat,
+        #                          toggle_tcpcs=False,
+        #                          toggle_jntscs=toggle_jntscs,
+        #                          toggle_connjnt=toggle_connjnt).attach_to(stickmodel)
         self.lft.gen_stickmodel(tcp_jnt_id=tcp_jnt_id,
                                 tcp_loc_pos=tcp_loc_pos,
                                 tcp_loc_rotmat=tcp_loc_rotmat,
@@ -184,13 +184,13 @@ class reconfgripper(gp.GripperInterface):
         '''
         self.rgt.jaw_to(0)
 
-    def rg_jaw_to(self, jaw_width):
+    def lg_jaw_to(self, jaw_width):
         '''
         Right gripper jaws to "jaw_width"
         '''
         self.lft.jaw_to(jaw_width)
 
-    def lg_jaw_to(self, jaw_width):
+    def rg_jaw_to(self, jaw_width):
         '''
         left gripper jaws to "jaw_width"
         '''
@@ -200,8 +200,8 @@ class reconfgripper(gp.GripperInterface):
         '''
         Open left gripper
         '''
-        self.body.jaw_to(.07048)
-        self.fk("main", 0.07048)
+        self.body.jaw_to(.076)
+        self.fk("main", 0.076)
 
 
     def mg_close(self):

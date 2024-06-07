@@ -10,7 +10,7 @@ dxl_con.enable_dxl_torque(1)  #启用电机扭矩
 time.sleep(4)
 print('//')
 # print(dxl_con.get_dxl_pos(1))
-a=dxl_con.get_dxl_pos(0)
+a=dxl_con.get_dxl_pos(1)
 print(a)
 
 time.sleep(1)

@@ -12,7 +12,7 @@ gripper = rf.reconfgripper()
 
 counter = [0]
 flag = [0]
-jawwidth_rng = np.linspace(0.0, 0.07048, 20)
+jawwidth_rng = np.linspace(0.0, 0.076, 20)
 gripper_mesh = []
 
 

@@ -1,8 +1,8 @@
-from time import sleep
 import drivers.devices.dh.dh_modbus_gripper as dh
+from time import sleep
 
 class maingripper():
-    def __init__(self, port = 'com3', baudrate = 115200, force = 10, speed = 10):
+    def __init__(self, port = 'com4', baudrate = 115200, force = 10, speed = 30):
         port = port
         baudrate = baudrate
         initstate = 0
@@ -15,12 +15,14 @@ class maingripper():
         while (initstate != 1):
             initstate = self.m_gripper.GetInitState()
             sleep(0.2)
-        self.m_gripper.SetTargetPosition(500)
-        self.set_speed(speed)
-        self.set_force(force)
+        # self.m_gripper.SetTargetPosition(400)
+        self.m_gripper.SetTargetSpeed(speed)
+        self.m_gripper.SetTargetForce(force)
+
 
     def init_gripper(self):
         self.m_gripper.Initialization()
+        sleep(2)
         print('Send grip init')
 
 
@@ -38,14 +40,25 @@ class maingripper():
         self.m_gripper.SetTargetSpeed(vel)
 
     def conv2encoder(self, jawwidth):
-        a = int(jawwidth * 1000 / 0.07048)
+        a = int(jawwidth * 1000 / 0.076)
         return a
+
+    def zero(self):
+        a = 0
+        self.m_gripper.SetTargetPosition(a)
+
+    def jaw_to(self, jawwidth):
+        self.m_gripper.SetTargetPosition(self.conv2encoder(jawwidth))
+        g_state = 0
+        while (g_state == 0):
+            g_state = self.m_gripper.GetGripState()
+            sleep(0.2)
 
     def mg_open(self):
         '''
         Main gripper open
         '''
-        self.jaw_to(0.07048)
+        self.jaw_to(0.076)
 
 
     def mg_close(self):
@@ -71,6 +84,3 @@ class maingripper():
         Get current jawwidth of main gripper
         '''
         pass
-
-mg = maingripper()
-mg.mg_close()
