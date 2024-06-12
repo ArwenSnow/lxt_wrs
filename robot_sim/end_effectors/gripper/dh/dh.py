@@ -246,13 +246,6 @@ class dh(gp.GripperInterface):
         '''
         self.jaw_to(0)
 
-    def mg_jaw_to(self, jawwidth):
-        '''
-        Main gripper jaws to "jawwidth"
-        '''
-        if jawwidth > self.jawwidth_rng[1]:
-            raise ValueError("The jaw_width parameter is out of range!")
-        self.fk(motion_val=jawwidth / 2.0)
 
 
 if __name__ == '__main__':

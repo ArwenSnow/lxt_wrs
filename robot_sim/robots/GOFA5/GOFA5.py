@@ -179,8 +179,8 @@ class GOFA5(ri.RobotInterface):
         else:
             raise NotImplementedError
 
-    def jaw_to(self, hnd_name='hnd_s', jawwidth=0.0):
-        self.hnd.mg_jaw_to(jawwidth)
+    def jaw_to(self, jawwidth=0.0):
+        self.hnd.jaw_to(jawwidth)
 
     def hold(self, hnd_name, objcm, jawwidth=None):
         """
@@ -291,12 +291,6 @@ class GOFA5(ri.RobotInterface):
             objcm.set_rotmat(obj_info['gl_rotmat'])
             objcm.copy().attach_to(meshmodel)
         return meshmodel
-
-    def door_to(self, door_width):
-        self.machine.door_to(door_width)
-
-    def chunck_to(self, chunck_width):
-        self.machine.jaw_to(chunck_width)
 
 
 if __name__ == '__main__':
