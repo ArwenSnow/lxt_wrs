@@ -38,41 +38,40 @@ b = gripper_m.rotmat
 grasp_info = grasp_info_list[0]
 jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
 gripper.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)
-# gripper.gen_meshmodel(rgba=[0, 1, 0, 1]).attach_to(base)
 gripper.gen_meshmodel().attach_to(base)
 
-if g == 'lgt':
-    m_rotmat = hnd_rotmat
-    gripper_m.lg_jaw_to(jaw_width)
-elif g =='rgt':
-    m_rotmat = np.dot(rm.rotmat_from_axangle([0, 0, 1], math.pi * 1 ),b)
-    m_rotmat = hnd_rotmat.dot(m_rotmat)
-    gripper_m.rg_jaw_to(jaw_width)
-m_pos = np.array([-.0656, 0, -.1373]) + gripper.rotmat.dot(a)
-m_pos = hnd_pos + hnd_rotmat.dot(m_pos)
-gripper_m.fix_to(m_pos, m_rotmat)
-gripper_m.mg_open()
-# gripper_m.gen_meshmodel(rgba=[0, 0, 1, .3]).attach_to(base)
-gripper_m.gen_meshmodel().attach_to(base)
-
-# for grasp_info in grasp_info_list:
-#     jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
-#     gripper.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)
-#     gripper.gen_meshmodel().attach_to(base)
-#     # gripper.gen_meshmodel(rgba=[0, 1, 0, 1]).attach_to(base)
+# if g == 'lgt':
+#     m_rotmat = hnd_rotmat
+#     gripper_m.lg_jaw_to(jaw_width)
+# elif g =='rgt':
+#     m_rotmat = np.dot(rm.rotmat_from_axangle([0, 0, 1], math.pi * 1 ),b)
+#     m_rotmat = hnd_rotmat.dot(m_rotmat)
+#     gripper_m.rg_jaw_to(jaw_width)
+# m_pos = np.array([-.0656, 0, -.1373]) + gripper.rotmat.dot(a)
+# m_pos = hnd_pos + hnd_rotmat.dot(m_pos)
+# gripper_m.fix_to(m_pos, m_rotmat)
+# gripper_m.mg_open()
+# # gripper_m.gen_meshmodel(rgba=[0, 0, 1, .3]).attach_to(base)
+# gripper_m.gen_meshmodel().attach_to(base)
 #
-#     if g == 'lgt':
-#         m_rotmat = hnd_rotmat
-#         gripper_m.lg_jaw_to(jaw_width)
-#     elif g == 'rgt':
-#         m_rotmat = np.dot(rm.rotmat_from_axangle([0, 0, 1], math.pi * 1), b)
-#         m_rotmat = hnd_rotmat.dot(m_rotmat)
-#         gripper_m.rg_jaw_to(jaw_width)
-#     m_pos = np.array([-.0626, 0, -.1373]) + gripper.rotmat.dot(a)
-#     m_pos = hnd_pos + hnd_rotmat.dot(m_pos)
-#     gripper_m.fix_to(m_pos, m_rotmat)
-#     gripper_m.mg_open()
-#     gripper_m.gen_meshmodel().attach_to(base)
-#     # gripper_m.gen_meshmodel(rgba=[0, 0, 1, .3]).attach_to(base)
+# # for grasp_info in grasp_info_list:
+# #     jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
+# #     gripper.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)
+# #     gripper.gen_meshmodel().attach_to(base)
+# #     # gripper.gen_meshmodel(rgba=[0, 1, 0, 1]).attach_to(base)
+# #
+# #     if g == 'lgt':
+# #         m_rotmat = hnd_rotmat
+# #         gripper_m.lg_jaw_to(jaw_width)
+# #     elif g == 'rgt':
+# #         m_rotmat = np.dot(rm.rotmat_from_axangle([0, 0, 1], math.pi * 1), b)
+# #         m_rotmat = hnd_rotmat.dot(m_rotmat)
+# #         gripper_m.rg_jaw_to(jaw_width)
+# #     m_pos = np.array([-.0626, 0, -.1373]) + gripper.rotmat.dot(a)
+# #     m_pos = hnd_pos + hnd_rotmat.dot(m_pos)
+# #     gripper_m.fix_to(m_pos, m_rotmat)
+# #     gripper_m.mg_open()
+# #     gripper_m.gen_meshmodel().attach_to(base)
+# #     # gripper_m.gen_meshmodel(rgba=[0, 0, 1, .3]).attach_to(base)
 
 base.run()
