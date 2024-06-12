@@ -6,7 +6,7 @@ import modeling.model_collection as mc
 import robot_sim._kinematics.jlchain as jl
 import robot_sim.manipulators.gofa5.gofa5 as rbt
 # import robot_sim.end_effectors.gripper.robotiq140.robotiq140 as hnd
-import robot_sim.end_effectors.gripper.dh.dh as hnd
+import robot_sim.end_effectors.gripper.dh60.dh60 as hnd
 import robot_sim.robots.robot_interface as ri
 from panda3d.core import CollisionNode, CollisionBox, Point3
 import robot_sim.manipulators.machinetool.machinetool_gripper as machine
@@ -37,7 +37,7 @@ class GOFA5(ri.RobotInterface):
                             homeconf=arm_homeconf,
                             name='arm', enable_cc=False)
         # gripper
-        self.hnd = hnd.dh(pos=self.arm.jnts[-1]['gl_posq'],
+        self.hnd = hnd.Dh60(pos=self.arm.jnts[-1]['gl_posq'],
                                    rotmat=self.arm.jnts[-1]['gl_rotmatq'],
                             name='hnd_s', enable_cc=False)
         # tool center point
@@ -303,7 +303,7 @@ if __name__ == '__main__':
 
     gm.gen_frame().attach_to(base)
     robot_s = GOFA5(enable_cc=True)
-    robot_s.hnd.mg_jaw_to(.06)
+    robot_s.hnd.jaw_to(.06)
     robot_s.gen_meshmodel(toggle_tcpcs=False, toggle_jntscs=False).attach_to(base)
     tgt_pos = np.array([.25, .2, .15])
     tgt_rotmat = rm.rotmat_from_axangle([0, 1, 0], math.pi * 2 / 3)

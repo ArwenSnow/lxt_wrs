@@ -12,9 +12,9 @@ import visualization.panda.world as wd
 from panda3d.core import CollisionNode, CollisionBox, Point3
 
 
-class GOFA5(ri.RobotInterface):  #定义机器人类：GOFA5，继承自ri.RobotInterface类
+class GOFA5(ri.RobotInterface):  #定义机器人类：gofa5，继承自ri.RobotInterface类
 
-    def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), name="GOFA5", enable_cc=True):
+    def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), name="gofa5", enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, name=name)
         this_dir, this_filename = os.path.split(__file__)
         # base plate

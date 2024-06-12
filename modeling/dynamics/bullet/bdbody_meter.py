@@ -94,7 +94,7 @@ class BDBody(BulletRigidBodyNode):
         """
         pdmat4 = self.getTransform().getMat()
         pdv3 = pdmat4.xformPoint(Vec3(-self.com[0], -self.com[1], -self.com[2]))
-        # homomat = dh.pdmat4_to_npmat4(pdmat4)
+        # homomat = dh60.pdmat4_to_npmat4(pdmat4)
         pos = dh.pdv3_to_npv3(pdv3)
         return pos
 

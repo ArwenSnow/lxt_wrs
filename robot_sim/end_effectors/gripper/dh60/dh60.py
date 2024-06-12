@@ -9,10 +9,10 @@ import basis.robot_math as rm
 import robot_sim.end_effectors.gripper.gripper_interface as gp
 
 
-class dh(gp.GripperInterface):
+class Dh60(gp.GripperInterface):
 
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), coupling_offset_pos=np.zeros(3),
-                 coupling_offset_rotmat=np.eye(3), cdmesh_type='convex_hull', name='dh',
+                 coupling_offset_rotmat=np.eye(3), cdmesh_type='convex_hull', name='Dh60',
                  enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, cdmesh_type=cdmesh_type, name=name)
         this_dir, this_filename = os.path.split(__file__)
@@ -67,7 +67,7 @@ class dh(gp.GripperInterface):
         # jaw width
         self.jawwidth_rng = [0.0, .06]
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, .133]) + coupling_offset_pos
+        self.jaw_center_pos = np.array([0, 0, .18]) + coupling_offset_pos
         # collision detection
         self.all_cdelements = []
         # self.enable_cc(toggle_cdprimit=enable_cc)
@@ -234,15 +234,15 @@ class dh(gp.GripperInterface):
         return meshmodel
 
 
-    def mg_open(self):
+    def open(self):
         '''
-        Main gripper open
+        gripper open
         '''
         self.jaw_to(.06)
 
-    def mg_close(self):
+    def close(self):
         '''
-        Main gripper close
+        gripper close
         '''
         self.jaw_to(0)
 
@@ -256,9 +256,9 @@ if __name__ == '__main__':
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
     # cm.CollisionModel("meshes/dual_realsense.stl", expand_radius=.001).attach_to(base)
-    grpr = dh(enable_cc=True)
+    grpr = Dh60(enable_cc=True)
     # grpr.gen_meshmodel().attach_to(base)
-    grpr.mg_open()
+    grpr.open()
     # grpr.jaw_to(0.03)
     jawwidth = grpr.get_jawwidth()
     print(jawwidth)
