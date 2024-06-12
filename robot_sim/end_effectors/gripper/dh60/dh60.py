@@ -260,7 +260,5 @@ if __name__ == '__main__':
     # grpr.gen_meshmodel().attach_to(base)
     grpr.open()
     # grpr.jaw_to(0.03)
-    jawwidth = grpr.get_jawwidth()
-    print(jawwidth)
     grpr.gen_meshmodel().attach_to(base)
     base.run()
