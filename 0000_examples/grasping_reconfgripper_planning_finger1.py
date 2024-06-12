@@ -1,3 +1,4 @@
+#reconfgripper grasps a finger
 import math
 import numpy as np
 import basis.robot_math as rm

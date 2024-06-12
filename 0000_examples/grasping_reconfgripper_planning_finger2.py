@@ -1,3 +1,4 @@
+##reconfgripper grasps two fingers
 import math
 import numpy as np
 import basis.robot_math as rm
@@ -72,23 +73,23 @@ for i in range(8):
     ])
 grasp_info_list.pop(4)
 
-for grasp_info in grasp_info_list:
-    lft_pos, lft_rotmat, rgt_pos, rgt_rotmat, m_pos, m_rotmat, jaw_width = grasp_info
-    gripper_l.grip_at_with_jcpose(lft_pos, lft_rotmat, jaw_width)
-    gripper_l.gen_meshmodel().attach_to(base)
-    gripper_r.grip_at_with_jcpose(rgt_pos, rgt_rotmat, jaw_width)
-    gripper_r.gen_meshmodel().attach_to(base)
-    gripper_m.fix_to(m_pos, m_rotmat)
-    gripper_m.gen_meshmodel().attach_to(base)
+# for grasp_info in grasp_info_list:
+#     lft_pos, lft_rotmat, rgt_pos, rgt_rotmat, m_pos, m_rotmat, jaw_width = grasp_info
+#     gripper_l.grip_at_with_jcpose(lft_pos, lft_rotmat, jaw_width)
+#     gripper_l.gen_meshmodel().attach_to(base)
+#     gripper_r.grip_at_with_jcpose(rgt_pos, rgt_rotmat, jaw_width)
+#     gripper_r.gen_meshmodel().attach_to(base)
+#     gripper_m.fix_to(m_pos, m_rotmat)
+#     gripper_m.gen_meshmodel().attach_to(base)
 
-# grasp_info = grasp_info_list[0]
-# lft_pos, lft_rotmat, rgt_pos, rgt_rotmat, m_pos, m_rotmat, jaw_width = grasp_info
-# gripper_l.grip_at_with_jcpose(lft_pos, lft_rotmat, jaw_width)
-# gripper_l.gen_meshmodel().attach_to(base)
-# gripper_r.grip_at_with_jcpose(rgt_pos, rgt_rotmat, jaw_width)
-# gripper_r.gen_meshmodel().attach_to(base)
-# gripper_m.fix_to(m_pos, m_rotmat)
-# gripper_m.gen_meshmodel().attach_to(base)
+grasp_info = grasp_info_list[0]
+lft_pos, lft_rotmat, rgt_pos, rgt_rotmat, m_pos, m_rotmat, jaw_width = grasp_info
+gripper_l.grip_at_with_jcpose(lft_pos, lft_rotmat, jaw_width)
+gripper_l.gen_meshmodel().attach_to(base)
+gripper_r.grip_at_with_jcpose(rgt_pos, rgt_rotmat, jaw_width)
+gripper_r.gen_meshmodel().attach_to(base)
+gripper_m.fix_to(m_pos, m_rotmat)
+gripper_m.gen_meshmodel().attach_to(base)
 
 base.run()
 

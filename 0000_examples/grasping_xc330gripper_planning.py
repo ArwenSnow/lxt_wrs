@@ -1,3 +1,4 @@
+#xc330gripper grasps the object directly
 import math
 import visualization.panda.world as wd
 import modeling.geometric_model as gm
