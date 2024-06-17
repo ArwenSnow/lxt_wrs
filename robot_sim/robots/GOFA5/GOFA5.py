@@ -55,6 +55,19 @@ class GOFA5(ri.RobotInterface):
         self.hnd_dict['hnd'] = self.hnd
         self.hnd_dict['arm'] = self.hnd
 
+        # logo
+        self.logo_01 = jl.JLChain(pos=self.arm.jlc.jnts[1]['loc_pos'] + self.arm.jlc.jnts[2]['loc_pos'],
+                                  rotmat=rotmat,
+                                  homeconf=np.zeros(0),
+                                  name='logo_01')
+
+        self.logo_01.lnks[0]['collision_model'] = cm.CollisionModel(
+            os.path.join(this_dir, "meshes", "logo_01.stl"),
+            cdprimit_type="box", expand_radius=.005,
+            userdefined_cdprimitive_fn=self._base_combined_cdnp)
+        self.logo_01.lnks[0]['rgba'] = [.35, .35, .35, 1]
+        self.logo_01.reinitialize()
+
     @staticmethod
     def _base_combined_cdnp(name, radius):
         collision_node = CollisionNode(name)
@@ -139,7 +152,7 @@ class GOFA5(ri.RobotInterface):
 
     def fk(self, component_name='arm', jnt_values=np.zeros(6)):
         """
-        :param jnt_values: 7 or 3+7, 3=agv, 7=arm, 1=grpr; metrics: meter-radian
+        :param jnt_values: 6 or 3+6, 3=agv, 6=arm, 1=grpr; metrics: meter-radian
         :param component_name: 'arm', 'agv', or 'all'
         :return:
         author: weiwei
@@ -267,6 +280,11 @@ class GOFA5(ri.RobotInterface):
                       name='xarm_shuidi_mobile_meshmodel'):
         meshmodel = mc.ModelCollection(name=name)
         if is_robot:
+            self.logo_01.gen_meshmodel(tcp_jnt_id=tcp_jnt_id,
+                                          tcp_loc_pos=tcp_loc_pos,
+                                          tcp_loc_rotmat=tcp_loc_rotmat,
+                                          toggle_tcpcs=False,
+                                          toggle_jntscs=toggle_jntscs).attach_to(meshmodel)
             self.base_stand.gen_meshmodel(tcp_jnt_id=tcp_jnt_id,
                                           tcp_loc_pos=tcp_loc_pos,
                                           tcp_loc_rotmat=tcp_loc_rotmat,

@@ -1,13 +1,12 @@
-import copy
-import math
 import numpy as np
+import basis.robot_math as rm
 import visualization.panda.world as wd
 import modeling.geometric_model as gm
 import modeling.collision_model as cm
 import grasping.planning.antipodal as gpa
 import robot_sim.end_effectors.gripper.dh60.dh60 as dh
-import robot_sim.robots.GOFA5.GOFA5 as gf5
-import manipulation.pick_place_planner as ppp
+import robot_sim.robots.gofa5.gofa5 as gf5
+import manipulation.pick_place_planner as ppp_s
 
 if __name__ == '__main__':
     base = wd.World(cam_pos=[4.16951, 1.8771, 1.70872], lookat_pos=[0, 0, 0.5])
@@ -15,7 +14,7 @@ if __name__ == '__main__':
 
     rbt_s = gf5.GOFA5()
     rbt_s.hnd.open()
-    # rbt_s.gen_meshmodel().attach_to(base)
+    rbt_s.gen_meshmodel().attach_to(base)
 
     # object
     objcm_name = "box"
@@ -51,76 +50,86 @@ if __name__ == '__main__':
 
     grasp_info = grasp_info_list[0]
     jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
+
     start_pos = jaw_center_pos + np.array([.4, -.2, -.015])
     start_rotmat = hnd_rotmat
-    goal_jnt_values = rbt_s.ik(tgt_pos=start_pos, tgt_rotmat=start_rotmat)
-    rbt_s.fk(component_name="arm", jnt_values=goal_jnt_values)
+    goal_jnt_values_1 = rbt_s.ik(tgt_pos=start_pos, tgt_rotmat=start_rotmat)
+    rbt_s.fk(component_name="arm", jnt_values=goal_jnt_values_1)
+    a = rbt_s.arm.jlc.jnts[1]['loc_pos']+ rbt_s.arm.jlc.jnts[2]['loc_pos']
+    rbt_s.arm.logo_01.set_pos(a)
+    rbt_s.arm.logo_01.attach_to(base)
     rbt_s.gen_meshmodel().attach_to(base)
 
     goal_pos = jaw_center_pos + np.array([.3, .4, -.015])
     goal_rotmat = hnd_rotmat
-    goal_jnt_values = rbt_s.ik(tgt_pos=goal_pos, tgt_rotmat=goal_rotmat)
-    rbt_s.fk(component_name="arm", jnt_values=goal_jnt_values)
+    goal_jnt_values_2 = rbt_s.ik(tgt_pos=goal_pos, tgt_rotmat=goal_rotmat)
+    rbt_s.fk(component_name="arm", jnt_values=goal_jnt_values_2)
     rbt_s.gen_meshmodel().attach_to(base)
 
-    conf_list, jawwidth_list, objpose_list = \
-        ppp_s.gen_pick_and_place_motion(hnd_name=hand_name,
-                                        objcm=object_holder,
-                                        grasp_info_list=original_grasp_info_list,
-                                        start_conf=start_conf,
-                                        end_conf=None,
-                                        goal_homomat_list=[obgl_start_homomat, obgl_goal_homomat],
-                                        approach_direction_list=[None, np.array([0, 0, -1])],
-                                        approach_distance_list=[.2] * 2,
-                                        depart_direction_list=[np.array([0, 0, 1]), None],
-                                        depart_distance_list=[.2] * 2)
-    robot_attached_list = []
-    object_attached_list = []
-    counter = [0]
-
-
-    def update(robot_s,
-               object_box,
-               robot_path,
-               jawwidth_path,
-               obj_path,
-               robot_attached_list,
-               object_attached_list,
-               counter,
-               task):
-        if counter[0] >= len(robot_path):
-            counter[0] = 0
-        if len(robot_attached_list) != 0:
-            for robot_attached in robot_attached_list:
-                robot_attached.detach()
-            for object_attached in object_attached_list:
-                object_attached.detach()
-            robot_attached_list.clear()
-            object_attached_list.clear()
-        pose = robot_path[counter[0]]
-        robot_s.fk(manipulator_name, pose)
-        robot_s.jaw_to(hand_name, jawwidth_path[counter[0]])
-        robot_meshmodel = robot_s.gen_meshmodel()
-        robot_meshmodel.attach_to(base)
-        robot_attached_list.append(robot_meshmodel)
-        obj_pose = obj_path[counter[0]]
-        objb_copy = object_box.copy()
-        objb_copy.set_rgba([1, 0, 0, 1])
-        objb_copy.set_homomat(obj_pose)
-        objb_copy.attach_to(base)
-        object_attached_list.append(objb_copy)
-        counter[0] += 1
-        return task.again
-
-
-    taskMgr.doMethodLater(0.01, update, "update",
-                          extraArgs=[robot_s,
-                                     object_holder,
-                                     conf_list,
-                                     jawwidth_list,
-                                     objpose_list,
-                                     robot_attached_list,
-                                     object_attached_list,
-                                     counter],
-                          appendTask=True)
+    # hand_name = "hnd"
+    # ppp = ppp_s.PickPlacePlanner(rbt_s)
+    # start_conf = rbt_s.get_jnt_values(component_name="arm")
+    # a = rm.homomat_from_posrot(start_pos,start_rotmat)
+    # b = rm.homomat_from_posrot(goal_pos,goal_rotmat)
+    # conf_list, jawwidth_list, objpose_list = \
+    #     ppp.gen_pick_and_place_motion(hnd_name=hand_name,
+    #                                     objcm=obj,
+    #                                     grasp_info_list=grasp_info_list,
+    #                                     start_conf=start_conf,
+    #                                     end_conf=None,
+    #                                     goal_homomat_list=[a,b],
+    #                                     approach_direction_list=[None, np.array([0, 0, -1])],
+    #                                     approach_distance_list=[.2] * 2,
+    #                                     depart_direction_list=[np.array([0, 0, 1]), None],
+    #                                     depart_distance_list=[.2] * 2)
+    # robot_attached_list = []
+    # object_attached_list = []
+    # counter = [0]
+    #
+    # robot_path = [goal_jnt_values_1,goal_jnt_values_2]
+    #
+    # def update(robot_s,
+    #            object_box,
+    #            robot_path,
+    #            jawwidth_path,
+    #            obj_path,
+    #            robot_attached_list,
+    #            object_attached_list,
+    #            counter,
+    #            task):
+    #     if counter[0] >= len(robot_path):
+    #         counter[0] = 0
+    #     if len(robot_attached_list) != 0:
+    #         for robot_attached in robot_attached_list:
+    #             robot_attached.detach()
+    #         for object_attached in object_attached_list:
+    #             object_attached.detach()
+    #         robot_attached_list.clear()
+    #         object_attached_list.clear()
+    #     pose = robot_path[counter[0]]
+    #     robot_s.fk(rbt_s, pose)
+    #     robot_s.jaw_to(gripper_s, jawwidth_path[counter[0]])
+    #     robot_meshmodel = robot_s.gen_meshmodel()
+    #     robot_meshmodel.attach_to(base)
+    #     robot_attached_list.append(robot_meshmodel)
+    #     obj_pose = obj_path[counter[0]]
+    #     objb_copy = object_box.copy()
+    #     objb_copy.set_rgba([1, 0, 0, 1])
+    #     objb_copy.set_homomat(obj_pose)
+    #     objb_copy.attach_to(base)
+    #     object_attached_list.append(objb_copy)
+    #     counter[0] += 1
+    #     return task.again
+    #
+    #
+    # taskMgr.doMethodLater(0.01, update, "update",
+    #                       extraArgs=[rbt_s,
+    #                                  obj,
+    #                                  conf_list,
+    #                                  jawwidth_list,
+    #                                  objpose_list,
+    #                                  robot_attached_list,
+    #                                  object_attached_list,
+    #                                  counter],
+    #                       appendTask=True)
     base.run()
