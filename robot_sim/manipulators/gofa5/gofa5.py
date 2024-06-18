@@ -31,7 +31,7 @@ class GOFA5(mi.ManipulatorInterface):
         self.jlc.jnts[5]['loc_rotmat'] = rm.rotmat_from_euler(ai=0,aj=math.pi/2,ak=math.pi)
         self.jlc.jnts[5]['loc_motionax'] = np.array([0, 0, 1])
 
-        self.jlc.jnts[6]['loc_pos'] = np.array([-0.068-0.036, -0.0745, 0.08])
+        self.jlc.jnts[6]['loc_pos'] = np.array([-0.101, -0.08, 0.0745])
         self.jlc.jnts[6]['loc_rotmat'] = rm.rotmat_from_euler(ai=0,aj=-math.pi/2,ak=0)
         self.jlc.jnts[6]['loc_motionax'] = np.array([0, 0, 1])
 
@@ -56,19 +56,6 @@ class GOFA5(mi.ManipulatorInterface):
         self.jlc.lnks[2]['mesh_file'] = os.path.join(this_dir, "meshes", "LINK02.STL")
         self.jlc.lnks[2]['rgba'] = [.2,.2,.2, 1]
 
-        # self.logo_01 = cm.CollisionModel(
-        #     os.path.join(this_dir, "meshes", "logo_01.stl"))
-        # self.logo_01.set_pos(self.jlc.jnts[1]['loc_pos']
-        #                     + self.jlc.jnts[2]['loc_pos'])
-
-        # logo_name = "logo_01"
-        # logo = cm.CollisionModel(f"meshes/{logo_name}.stl")
-        # logo.set_rgba([1, 0, 0, 1])
-        # logo.set_pos(self.jlc.jnts[1]['loc_pos']
-        #             +self.jlc.jnts[2]['loc_pos'])
-        # logo.set_rotmat(self.jlc.jnts[2]['loc_rotmat'])
-        # logo.attach_to(base)
-
         self.jlc.lnks[3]['name'] = "forearm"
         self.jlc.lnks[3]['loc_pos'] = np.array([.0, .0, .0])
         self.jlc.lnks[3]['com'] = np.array([.05, .0, .0238])
@@ -82,28 +69,6 @@ class GOFA5(mi.ManipulatorInterface):
         self.jlc.lnks[4]['mass'] = 0.871
         self.jlc.lnks[4]['mesh_file'] = os.path.join(this_dir, "meshes", "LINK04.STL")
         self.jlc.lnks[4]['rgba'] = [.7,.7,.7, 1]
-
-        # self.logo_02 = jl.JLChain(pos=self.jlc.jnts[1]['loc_pos']
-        #                           + self.jlc.jnts[2]['loc_pos']
-        #                           + self.jlc.jnts[3]['loc_pos']
-        #                           + self.jlc.jnts[4]['loc_pos'],
-        #                           rotmat=rotmat,
-        #                           homeconf=np.zeros(0),
-        #                           name='logo_02')
-        # self.logo_02.lnks[0]['collision_model'] = cm.CollisionModel(
-        #     os.path.join(this_dir, "meshes", "logo_02.stl"))
-        # self.logo_02.lnks[0]['rgba'] = [1, 0, 0, 1]
-        # self.logo_02.gen_meshmodel().attach_to(base)
-
-        # logo_name = "logo_02"
-        # logo = cm.CollisionModel(f"meshes/{logo_name}.stl")
-        # logo.set_rgba([1, 0, 0, 1])
-        # logo.set_pos(self.jlc.jnts[1]['loc_pos']
-        #             +self.jlc.jnts[2]['loc_pos']
-        #             +self.jlc.jnts[3]['loc_pos']
-        #             +self.jlc.jnts[4]['loc_pos'])
-        # logo.set_rotmat(self.jlc.jnts[4]['loc_rotmat'])
-        # logo.attach_to(base)
 
         self.jlc.lnks[5]['name'] = "wrist2"
         self.jlc.lnks[5]['loc_pos'] = np.array([.0, .0, .0])
@@ -119,6 +84,27 @@ class GOFA5(mi.ManipulatorInterface):
         self.jlc.lnks[6]['mesh_file'] = os.path.join(this_dir, "meshes", "LINK06.STL")
         self.jlc.lnks[6]['rgba'] = [.7, .7, .7, 1]
         self.jlc.reinitialize()
+
+        self.logo_01 = jl.JLChain(pos=self.jlc.jnts[2]['gl_posq'],
+                                  rotmat=self.jlc.jnts[2]['gl_rotmatq'],
+                                  homeconf=np.zeros(0),
+                                  name='logo_01')
+        self.logo_01.lnks[0]['collision_model'] = cm.CollisionModel(
+            os.path.join(this_dir, "meshes", "logo_01.stl"))
+        self.logo_01.lnks[0]['rgba'] = [1, 0, 0, 1]
+        self.logo_01.gen_meshmodel().attach_to(base)
+        self.logo_01.reinitialize()
+
+        self.logo_02 = jl.JLChain(pos=self.jlc.jnts[4]['gl_posq'],
+                                  rotmat=self.jlc.jnts[4]['gl_rotmatq'],
+                                  homeconf=np.zeros(0),
+                                  name='logo_02')
+        self.logo_02.lnks[0]['collision_model'] = cm.CollisionModel(
+            os.path.join(this_dir, "meshes", "logo_02.stl"))
+        self.logo_02.lnks[0]['rgba'] = [1, 0, 0, 1]
+        self.logo_02.gen_meshmodel().attach_to(base)
+        self.logo_02.reinitialize()
+
         # collision checker
         if enable_cc:
             super().enable_cc()

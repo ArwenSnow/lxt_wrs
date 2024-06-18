@@ -158,7 +158,7 @@ class Ag145(gp.GripperInterface):
         # jaw center
         self.jaw_center_pos = np.array([0, 0, .18169])  # position for initial state (fully open)
         # relative jaw center pos
-        self.jaw_center_pos_rel = self.jaw_center_pos - self.lft_outer.jnts[3]['gl_posq']
+        self.jaw_center_pos_rel = self.jaw_center_pos - self.lft_outer.jnts[3]['loc_pos']
         # collision detection
         self.all_cdelements = []
         self.enable_cc(toggle_cdprimit=enable_cc)
@@ -285,7 +285,7 @@ class Ag145(gp.GripperInterface):
         self.fk(motion_val)
         # TODO dynamically change jaw center
         # print(self.jaw_center_pos_rel)
-        self.jaw_center_pos=np.array([0,0,self.lft_outer.jnts[3]['gl_posq'][2]+self.jaw_center_pos_rel[2]])
+        self.jaw_center_pos=np.array([0,0,self.lft_outer.jnts[3]['loc_pos'][2]+self.jaw_center_pos_rel[2]])
 
     def gen_stickmodel(self,
                        tcp_jntid=None,
@@ -374,7 +374,8 @@ if __name__ == '__main__':
     grpr = Ag145(enable_cc=True)
     jawwidth = 0.1
     grpr.jaw_to(jawwidth)
-    grpr.gen_meshmodel(toggle_tcpcs=True, toggle_jntscs=True).attach_to(base)
-    gm.gen_stick(np.array([0, 0, 0]), np.array([0, 0, 100])).attach_to(base)
+    print(grpr.jaw_center_pos)
+    grpr.gen_meshmodel(toggle_tcpcs=True).attach_to(base)
+    # gm.gen_stick(np.array([0, 0, 0]), np.array([0, 0, 100])).attach_to(base)
 
     base.run()

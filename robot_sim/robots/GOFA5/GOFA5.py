@@ -33,12 +33,12 @@ class GOFA5(ri.RobotInterface):
         # arm
         arm_homeconf = np.zeros(6)
         self.arm = rbt.GOFA5(pos=pos,
-                            rotmat=self.base_stand.jnts[-1]['gl_rotmatq'],
-                            homeconf=arm_homeconf,
-                            name='arm', enable_cc=False)
+                             rotmat=self.base_stand.jnts[-1]['gl_rotmatq'],
+                             homeconf=arm_homeconf,
+                             name='arm', enable_cc=False)
         # gripper
         self.hnd = hnd.Dh60(pos=self.arm.jnts[-1]['gl_posq'],
-                                   rotmat=self.arm.jnts[-1]['gl_rotmatq'],
+                            rotmat=self.arm.jnts[-1]['gl_rotmatq'],
                             name='hnd_s', enable_cc=False)
         # tool center point
         self.arm.jlc.tcp_jnt_id = -1
@@ -55,18 +55,6 @@ class GOFA5(ri.RobotInterface):
         self.hnd_dict['hnd'] = self.hnd
         self.hnd_dict['arm'] = self.hnd
 
-        # logo
-        self.logo_01 = jl.JLChain(pos=self.arm.jlc.jnts[1]['loc_pos'] + self.arm.jlc.jnts[2]['loc_pos'],
-                                  rotmat=rotmat,
-                                  homeconf=np.zeros(0),
-                                  name='logo_01')
-
-        self.logo_01.lnks[0]['collision_model'] = cm.CollisionModel(
-            os.path.join(this_dir, "meshes", "logo_01.stl"),
-            cdprimit_type="box", expand_radius=.005,
-            userdefined_cdprimitive_fn=self._base_combined_cdnp)
-        self.logo_01.lnks[0]['rgba'] = [.35, .35, .35, 1]
-        self.logo_01.reinitialize()
 
     @staticmethod
     def _base_combined_cdnp(name, radius):
@@ -280,11 +268,6 @@ class GOFA5(ri.RobotInterface):
                       name='xarm_shuidi_mobile_meshmodel'):
         meshmodel = mc.ModelCollection(name=name)
         if is_robot:
-            self.logo_01.gen_meshmodel(tcp_jnt_id=tcp_jnt_id,
-                                          tcp_loc_pos=tcp_loc_pos,
-                                          tcp_loc_rotmat=tcp_loc_rotmat,
-                                          toggle_tcpcs=False,
-                                          toggle_jntscs=toggle_jntscs).attach_to(meshmodel)
             self.base_stand.gen_meshmodel(tcp_jnt_id=tcp_jnt_id,
                                           tcp_loc_pos=tcp_loc_pos,
                                           tcp_loc_rotmat=tcp_loc_rotmat,

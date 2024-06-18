@@ -55,9 +55,6 @@ if __name__ == '__main__':
     start_rotmat = hnd_rotmat
     goal_jnt_values_1 = rbt_s.ik(tgt_pos=start_pos, tgt_rotmat=start_rotmat)
     rbt_s.fk(component_name="arm", jnt_values=goal_jnt_values_1)
-    a = rbt_s.arm.jlc.jnts[1]['loc_pos']+ rbt_s.arm.jlc.jnts[2]['loc_pos']
-    rbt_s.arm.logo_01.set_pos(a)
-    rbt_s.arm.logo_01.attach_to(base)
     rbt_s.gen_meshmodel().attach_to(base)
 
     goal_pos = jaw_center_pos + np.array([.3, .4, -.015])
