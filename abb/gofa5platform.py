@@ -62,7 +62,7 @@ if __name__ == '__main__':
     goal_jnt_values = rbt_s.ik(tgt_pos=goal_pos, tgt_rotmat=goal_rotmat)
     rbt_s.fk(component_name="arm", jnt_values=goal_jnt_values)
     rbt_s.gen_meshmodel().attach_to(base)
-
+    base.run()
     conf_list, jawwidth_list, objpose_list = \
         ppp_s.gen_pick_and_place_motion(hnd_name=hand_name,
                                         objcm=object_holder,
