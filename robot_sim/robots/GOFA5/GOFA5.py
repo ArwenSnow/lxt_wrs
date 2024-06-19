@@ -33,12 +33,12 @@ class GOFA5(ri.RobotInterface):
         # arm
         arm_homeconf = np.zeros(6)
         self.arm = rbt.GOFA5(pos=pos,
-                            rotmat=self.base_stand.jnts[-1]['gl_rotmatq'],
-                            homeconf=arm_homeconf,
-                            name='arm', enable_cc=False)
+                             rotmat=self.base_stand.jnts[-1]['gl_rotmatq'],
+                             homeconf=arm_homeconf,
+                             name='arm', enable_cc=False)
         # gripper
         self.hnd = hnd.Dh60(pos=self.arm.jnts[-1]['gl_posq'],
-                                   rotmat=self.arm.jnts[-1]['gl_rotmatq'],
+                            rotmat=self.arm.jnts[-1]['gl_rotmatq'],
                             name='hnd_s', enable_cc=False)
         # tool center point
         self.arm.jlc.tcp_jnt_id = -1
@@ -54,6 +54,7 @@ class GOFA5(ri.RobotInterface):
         self.manipulator_dict['hnd'] = self.arm
         self.hnd_dict['hnd'] = self.hnd
         self.hnd_dict['arm'] = self.hnd
+
 
     @staticmethod
     def _base_combined_cdnp(name, radius):
@@ -139,7 +140,7 @@ class GOFA5(ri.RobotInterface):
 
     def fk(self, component_name='arm', jnt_values=np.zeros(6)):
         """
-        :param jnt_values: 7 or 3+7, 3=agv, 7=arm, 1=grpr; metrics: meter-radian
+        :param jnt_values: 6 or 3+6, 3=agv, 6=arm, 1=grpr; metrics: meter-radian
         :param component_name: 'arm', 'agv', or 'all'
         :return:
         author: weiwei

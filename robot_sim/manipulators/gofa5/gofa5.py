@@ -4,6 +4,7 @@ import numpy as np
 import basis.robot_math as rm
 import robot_sim._kinematics.jlchain as jl
 import robot_sim.manipulators.manipulator_interface as mi
+import modeling.collision_model as cm
 
 class GOFA5(mi.ManipulatorInterface):
 
@@ -15,25 +16,25 @@ class GOFA5(mi.ManipulatorInterface):
         self.jlc.jnts[1]['loc_pos'] = np.array([0, 0, 0.1855])
 
         self.jlc.jnts[2]['loc_pos'] = np.array([0, -.085, 0.0765])
-        self.jlc.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(ai=0,aj=0,ak=0)
-        self.jlc.jnts[2]['loc_motionax'] = np.array([0, 1, 0])
+        self.jlc.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(ai=math.pi/2,aj=0,ak=0)
+        self.jlc.jnts[2]['loc_motionax'] = np.array([0, 0, 1])
 
-        self.jlc.jnts[3]['loc_pos'] = np.array([0, 0, 0.444])
-        self.jlc.jnts[3]['loc_motionax'] = np.array([0, 1, 0])
+        self.jlc.jnts[3]['loc_pos'] = np.array([0, 0.444, 0])
+        self.jlc.jnts[3]['loc_rotmat'] = rm.rotmat_from_euler(ai=0,aj=0,ak=0)
+        self.jlc.jnts[3]['loc_motionax'] = np.array([0, 0, 1])
 
-        self.jlc.jnts[4]['loc_pos'] = np.array([0.096, 0.085, 0.11])
-        self.jlc.jnts[4]['loc_rotmat'] = rm.rotmat_from_euler(ai=0,aj=0,ak=0)
-        self.jlc.jnts[4]['loc_motionax'] = np.array([1, 0, 0])
+        self.jlc.jnts[4]['loc_pos'] = np.array([0.096, 0.11, -0.085])
+        self.jlc.jnts[4]['loc_rotmat'] = rm.rotmat_from_euler(ai=math.pi*0/2,aj=math.pi/2,ak=math.pi*0/2)
+        self.jlc.jnts[4]['loc_motionax'] = np.array([0, 0, 1])
 
-        self.jlc.jnts[5]['loc_pos'] = np.array([0.373, 0.0755, 0])
-        self.jlc.jnts[5]['loc_motionax'] = np.array([0, 1, 0])
+        self.jlc.jnts[5]['loc_pos'] = np.array([0.0755, 0, 0.373])
+        self.jlc.jnts[5]['loc_rotmat'] = rm.rotmat_from_euler(ai=0,aj=math.pi/2,ak=math.pi)
+        self.jlc.jnts[5]['loc_motionax'] = np.array([0, 0, 1])
 
-        self.jlc.jnts[6]['loc_pos'] = np.array([0.068, -0.0745, 0.08])
-        self.jlc.jnts[6]['loc_motionax'] = np.array([1, 0, 0])
+        self.jlc.jnts[6]['loc_pos'] = np.array([-0.101, -0.08, 0.0745])
+        self.jlc.jnts[6]['loc_rotmat'] = rm.rotmat_from_euler(ai=0,aj=-math.pi/2,ak=0)
+        self.jlc.jnts[6]['loc_motionax'] = np.array([0, 0, 1])
 
-        self.jlc.jnts[7]['loc_pos'] = np.array([0.033, 0, 0])
-        self.jlc.jnts[7]['loc_rotmat'] = rm.rotmat_from_euler(0,math.pi*1/2,0)
-        self.jlc.jnts[7]['loc_motionax'] = np.array([1, 0, 0])
         # links
         self.jlc.lnks[0]['name'] = "base"
         self.jlc.lnks[0]['loc_pos'] = np.zeros(3)
@@ -74,15 +75,36 @@ class GOFA5(mi.ManipulatorInterface):
         self.jlc.lnks[5]['com'] = np.array([.0, .0, 0.01])
         self.jlc.lnks[5]['mass'] = 0.8
         self.jlc.lnks[5]['mesh_file'] = os.path.join(this_dir, "meshes", "LINK05.STL")
-        self.jlc.lnks[5]['rgba'] = [.7,.7,.7, 1]
+        self.jlc.lnks[5]['rgba'] = [.7, .7, .7, 1]
 
         self.jlc.lnks[6]['name'] = "wrist3"
         self.jlc.lnks[6]['loc_pos'] = np.array([.0, .0, .0])
-        self.jlc.lnks[6]['com'] = np.array([.0, .0, -0.02])
+        self.jlc.lnks[6]['com'] = np.array([.0, .0, 0])
         self.jlc.lnks[6]['mass'] = 0.8
         self.jlc.lnks[6]['mesh_file'] = os.path.join(this_dir, "meshes", "LINK06.STL")
-        self.jlc.lnks[6]['rgba'] = [.7,.7,.7, 1]
+        self.jlc.lnks[6]['rgba'] = [.7, .7, .7, 1]
         self.jlc.reinitialize()
+
+        self.logo_01 = jl.JLChain(pos=self.jlc.jnts[2]['gl_posq'],
+                                  rotmat=self.jlc.jnts[2]['gl_rotmatq'],
+                                  homeconf=np.zeros(0),
+                                  name='logo_01')
+        self.logo_01.lnks[0]['collision_model'] = cm.CollisionModel(
+            os.path.join(this_dir, "meshes", "logo_01.stl"))
+        self.logo_01.lnks[0]['rgba'] = [1, 0, 0, 1]
+        self.logo_01.gen_meshmodel().attach_to(base)
+        self.logo_01.reinitialize()
+
+        self.logo_02 = jl.JLChain(pos=self.jlc.jnts[4]['gl_posq'],
+                                  rotmat=self.jlc.jnts[4]['gl_rotmatq'],
+                                  homeconf=np.zeros(0),
+                                  name='logo_02')
+        self.logo_02.lnks[0]['collision_model'] = cm.CollisionModel(
+            os.path.join(this_dir, "meshes", "logo_02.stl"))
+        self.logo_02.lnks[0]['rgba'] = [1, 0, 0, 1]
+        self.logo_02.gen_meshmodel().attach_to(base)
+        self.logo_02.reinitialize()
+
         # collision checker
         if enable_cc:
             super().enable_cc()
@@ -112,7 +134,6 @@ class GOFA5(mi.ManipulatorInterface):
         fromlist = [self.jlc.lnks[3]]
         intolist = [self.jlc.lnks[6]]
         self.cc.set_cdpair(fromlist, intolist)
-
 
 if __name__ == '__main__':
     import time
