@@ -397,12 +397,14 @@ if __name__ == "__main__":
 
     base = wd.World(cam_pos=[.3, .3, .3], lookat_pos=[0, 0, 0], toggle_debug=True)
     objpath = os.path.join(basis.__path__[0], 'objects', 'bunnysim.stl')
-    bunnycm = CollisionModel(objpath, cdprimit_type='polygons')
+    bunnycm = CollisionModel(objpath, cdprimit_type='box', expand_radius=.1)
     bunnycm.set_rgba([0.7, 0.7, 0.0, .2])
     bunnycm.show_localframe()
     rotmat = rm.rotmat_from_axangle([1, 0, 0], math.pi / 2.0)
     bunnycm.set_rotmat(rotmat)
     bunnycm.show_cdprimit()
+    bunnycm.attach_to(base)
+    base.run()
 
     bunnycm1 = CollisionModel(objpath, cdprimit_type="cylinder")
     bunnycm1.set_rgba([0.7, 0, 0.7, 1.0])

@@ -159,9 +159,9 @@ class SchunkRH918(gp.GripperInterface):
         self.lft.gen_meshmodel(toggle_tcpcs=False,
                                toggle_jntscs=toggle_jntscs,
                                rgba=rgba).attach_to(meshmodel)
-        self.rgt.gen_meshmodel(toggle_tcpcs=False,
-                               toggle_jntscs=toggle_jntscs,
-                               rgba=rgba).attach_to(meshmodel)
+        # self.rgt.gen_meshmodel(toggle_tcpcs=False,
+        #                        toggle_jntscs=toggle_jntscs,
+        #                        rgba=rgba).attach_to(meshmodel)
         if toggle_tcpcs:
             jaw_center_gl_pos = self.rotmat.dot(self.jaw_center_pos)+self.pos
             jaw_center_gl_rotmat = self.rotmat.dot(self.jaw_center_rotmat)
@@ -186,10 +186,10 @@ if __name__ == '__main__':
     grpr = SchunkRH918(enable_cc=True)
     grpr.jaw_to(.01)
     print("jaw_width = ", grpr.get_jawwidth())
-    grpr.gen_meshmodel(rgba=(1,0,0,1)).attach_to(base)
-    grpr.jaw_to(.04)
-    print("jaw_width = ", grpr.get_jawwidth())
-    grpr.gen_meshmodel(rgba=(0,0,1,1)).attach_to(base)
+    grpr.gen_meshmodel().attach_to(base)
+    # grpr.jaw_to(.04)
+    # print("jaw_width = ", grpr.get_jawwidth())
+    # grpr.gen_meshmodel(rgba=(0,0,1,1)).attach_to(base)
     # grpr.gen_stickmodel().attach_to(base)
     grpr.fix_to(pos=np.array([0, .3, .2]), rotmat=rm.rotmat_from_axangle([1, 0, 0], .05))
     grpr.gen_meshmodel(toggle_tcpcs=True).attach_to(base)

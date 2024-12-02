@@ -34,10 +34,14 @@ class reconfgripper(gp.GripperInterface):
                                     rotmat=self.body.rgt.jnts[2]['gl_rotmatq'],
                                     name='rgt')
 
+        # jaw width
+        self.jawwidth_rng = [0, .062]
+
         self.gripper_dict = {}
         self.gripper_dict['lft'] = self.lft
         self.gripper_dict['rgt'] = self.rgt
         self.gripper_dict['main'] = self.body
+
 
     def fix_to(self, pos, rotmat):
         self.pos = pos
@@ -161,7 +165,7 @@ class reconfgripper(gp.GripperInterface):
         '''
         Open left gripper
         '''
-        self.lft.jaw_to(.028)
+        self.lft.jaw_to(.03)
 
 
     def lg_close(self):
@@ -175,7 +179,7 @@ class reconfgripper(gp.GripperInterface):
         '''
         Open right gripper
         '''
-        self.rgt.jaw_to(.028)
+        self.rgt.jaw_to(.03)
 
 
     def rg_close(self):
@@ -200,8 +204,8 @@ class reconfgripper(gp.GripperInterface):
         '''
         Open left gripper
         '''
-        self.body.jaw_to(.076)
-        self.fk("main", 0.076)
+        self.body.jaw_to(.062)
+        self.fk("main", 0.062)
 
 
     def mg_close(self):
@@ -216,6 +220,7 @@ class reconfgripper(gp.GripperInterface):
         Open right gripper
         '''
         self.body.jaw_to(jaw_width)
+        self.fk("main", jaw_width)
 
     def get_jaw_center_pos(self):
         '''
@@ -231,6 +236,50 @@ class reconfgripper(gp.GripperInterface):
         else:
             return self.rgt.get_jawwidth()
 
+    def lft_center_pos_main(self, m_jawwidth):
+        lft_center_pos_local = np.array([-0.0265, .018, 0.0662])  # 小夹爪中心点在自身坐标系中的位置
+        lft_origin_pos_main = np.array([-0.0535 - m_jawwidth / 2, -.018, 0.135])  # 小夹爪零点在大夹爪坐标系中的位置
+        m_rotmat = np.eye(3)
+        lft_center_pos_main = lft_origin_pos_main + m_rotmat.dot(lft_center_pos_local)
+        print(f"左夹爪中心在大夹爪坐标系的坐标为：{lft_center_pos_main}")
+        return lft_center_pos_main
+
+    def rgt_center_pos_main(self, m_jawwidth):
+        rgt_center_pos_local = np.array([-0.00236, 0, 0.056735])  # 小夹爪中心点在自身坐标系中的位置
+        rgt_origin_pos_global = np.array([0.0276 + m_jawwidth / 2, 0, 0.135])  # 小夹爪零点在大夹爪坐标系中的位置
+        m_rotmat = np.eye(3)
+        rgt_center_pos_main = rgt_origin_pos_global + m_rotmat.dot(rgt_center_pos_local)
+        print(f"右夹爪中心在大夹爪坐标系的坐标为：{rgt_center_pos_main}")
+        return rgt_center_pos_main
+
+    def center_pos_global(self, contact_center_pos, contact_center_rotmat, mg_jawwidth, g="l"):
+        if g == "l":
+            x = contact_center_pos + contact_center_rotmat.dot([-0.054 - mg_jawwidth, 0, 0])
+            y = contact_center_pos + contact_center_rotmat.dot([-0.027 - mg_jawwidth / 2, .018, -0.2012])
+            print(f"左夹爪中心在全局坐标系下的坐标为：{contact_center_pos}")
+            print(f"右夹爪中心在全局坐标系下的坐标为：{x}")
+            print(f"大夹爪中心在全局坐标系下的坐标为：{y}")
+            return x, y
+        elif g == "r":
+            x = contact_center_pos + contact_center_rotmat.dot([0.054 + mg_jawwidth, 0, 0])
+            y = contact_center_pos + contact_center_rotmat.dot([0.027 + mg_jawwidth / 2, -.018, -0.2012])
+            print(f"左夹爪中心在全局坐标系下的坐标为：{x}")
+            print(f"右夹爪中心在全局坐标系下的坐标为：{contact_center_pos}")
+            print(f"大夹爪中心在全局坐标系下的坐标为：{y}")
+            return x, y
+
+    def gripper_bool(self,g='m'):
+        if g == 'm':
+            open_bool = self.get_jawwidth("m") > 0  # 检测大夹爪是否打开
+            print(f"大夹爪是否打开：{open_bool}")
+        elif g == 'l':
+            open_bool = self.get_jawwidth("l") > 0   # 检测左夹爪是否打开
+            print(f"左夹爪是否打开：{open_bool}")
+        else:
+            open_bool = self.get_jawwidth("r") > 0  # 检测右夹爪是否打开
+            print(f"右夹爪是否打开：{open_bool}")
+
+
 if __name__ == '__main__':
     import visualization.panda.world as wd
     import modeling.geometric_model as gm
@@ -238,10 +287,17 @@ if __name__ == '__main__':
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
     grpr = reconfgripper()
-    grpr.mg_open()
-    grpr.lg_open()
-    grpr.rg_open()
-    jawwidth = grpr.get_jawwidth(g = "m")
-    print(jawwidth)
+    grpr.mg_jaw_to(0.062)
+    grpr.lg_close()
+    grpr.rg_close()
+    m_jawwidth = grpr.get_jawwidth(g='m')
+    m_rotmat = grpr.rotmat
+    # grpr.lft_center_pos_main(m_jawwidth)
+    # grpr.rgt_center_pos_main(m_jawwidth)
+    # grpr.gripper_bool(g='l')
+    # grpr.gripper_bool(g='r')
+    # grpr.gripper_bool(g='m')
     grpr.gen_meshmodel().attach_to(base)
     base.run()
+
+

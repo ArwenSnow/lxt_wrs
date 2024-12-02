@@ -8,7 +8,7 @@ import robot_sim.end_effectors.gripper.dh60.dh60 as dh
 base = wd.World(cam_pos=[1, 1, 1], lookat_pos=[0, 0, 0])
 gm.gen_frame().attach_to(base)
 
-gripper_s = dh.dh()
+gripper_s = dh.Dh60()
 objcm_name = "box"
 obj = cm.CollisionModel(f"objects/{objcm_name}.stl")
 obj.set_rgba([.9, .75, .35, 1])

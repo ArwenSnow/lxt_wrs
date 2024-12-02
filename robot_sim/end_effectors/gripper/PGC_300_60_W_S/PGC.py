@@ -32,31 +32,31 @@ class PGC(gp.GripperInterface):
         self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "base.stl")
         self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
 
-        self.lft.jnts[1]['loc_pos'] = np.array([-.0018, -.01635, .143])
+        self.lft.jnts[1]['loc_pos'] = np.array([-.03112, -.01135, .135])
         self.lft.jnts[1]['type'] = 'prismatic'
         self.lft.jnts[1]['motion_rng'] = [0, .038]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
-        self.lft.lnks[1]['name'] = "finger1"
+        self.lft.lnks[1]['name'] = "fingertip1"
         self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip1.stl")
         self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
-        self.lft.jnts[2]['loc_pos'] = np.array([.0294,.01635, -.007])
-        self.lft.jnts[2]['loc_rotmat'] = np.array([0,0,0])
+        self.lft.jnts[2]['loc_pos'] = np.array([.08462, -.00665, 0])
+        self.lft.jnts[2]['loc_rotmat'] = np.array([0, 0, 0])
         self.lft.jnts[2]['loc_rotmat']=rm.rotmat_from_euler(0, 0, 0)
 
 
         #rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
-        self.rgt.jnts[1]['loc_pos'] = np.array([.0018,.01635,.143])
+        self.rgt.jnts[1]['loc_pos'] = np.array([.03112, .01135, .135])
         self.rgt.jnts[1]['type'] = 'prismatic'
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
-        self.rgt.lnks[1]['name'] = "finger2"
+        self.rgt.lnks[1]['name'] = "fingertip2"
         self.rgt.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip2.stl")
         self.rgt.lnks[1]['rgba'] = [.5, .5, .5, 1]
-        self.rgt.jnts[2]['loc_pos'] = np.array([-.0294,-.01635, -.007])
-        self.rgt.jnts[2]['loc_rotmat']=rm.rotmat_from_euler(0, 0, math.pi)
+        self.rgt.jnts[2]['loc_pos'] = np.array([-.08462, .00665, 0])
+        self.rgt.jnts[2]['loc_rotmat']=rm.rotmat_from_euler(0, 0, 0)
 
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, .133]) + coupling_offset_pos
+        self.jaw_center_pos = np.array([0, 0, .2012]) + coupling_offset_pos
         # reinitialize
         self.lft.reinitialize()
         self.rgt.reinitialize()
@@ -66,8 +66,7 @@ class PGC(gp.GripperInterface):
 
         # jaw width
         self.jawwidth_rng = [0.0, .076]
-        # jaw center
-        self.jaw_center_pos = np.array([0, 0, .133]) + coupling_offset_pos
+
         # collision detection
         self.all_cdelements = []
         # self.enable_cc(toggle_cdprimit=enable_cc)

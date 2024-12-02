@@ -6,7 +6,7 @@ import visualization.panda.world as wd
 import modeling.geometric_model as gm
 import modeling.collision_model as cm
 import grasping.planning.antipodal as gpa
-import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as rf
+import robot_sim.end_effectors.gripper.reconfgrippper.reconfgrippper_old.reconfgripper as rf
 
 base = wd.World(cam_pos=[1, 1, 1], lookat_pos=[0, 0, 0])
 gm.gen_frame().attach_to(base)

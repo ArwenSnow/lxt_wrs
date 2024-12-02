@@ -6,7 +6,7 @@ import visualization.panda.world as wd
 import modeling.geometric_model as gm
 import modeling.collision_model as cm
 import grasping.planning.antipodal as gpa
-import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as rf
+import robot_sim.end_effectors.gripper.reconfgrippper.reconfgrippper_old.reconfgripper as rf
 
 base = wd.World(cam_pos=[1, 1, 1], lookat_pos=[0, 0, 0])
 gm.gen_frame().attach_to(base)
@@ -30,12 +30,12 @@ b=gripper_m.rotmat
 # grasp_info
 jaw_center_pos = np.zeros(3)
 jaw_center_rotmat = np.eye(3)
-contact_offset = .0025
+contact_offset = .00250
 jaw_width = .008 + contact_offset*2
 angle_increment = math.pi*45/180
 
 
-for i in range(8):
+for i in range(1):
     jaw_center_rotmat = np.dot(rm.rotmat_from_axangle([1, 0, 0], i*angle_increment ),jaw_center_rotmat)
     gripper.grip_at_with_jcpose(jaw_center_pos, jaw_center_rotmat, jaw_width)
     gripper.gen_meshmodel(rgba=[0, 1, 0, 1]).attach_to(base)

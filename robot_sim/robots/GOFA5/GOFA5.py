@@ -6,9 +6,11 @@ import modeling.model_collection as mc
 import robot_sim._kinematics.jlchain as jl
 import robot_sim.manipulators.gofa5.gofa5 as rbt
 # import robot_sim.end_effectors.gripper.robotiq140.robotiq140 as hnd
+# import robot_sim.end_effectors.gripper.ag145.ag145 as hnd
 import robot_sim.end_effectors.gripper.dh60.dh60 as hnd
 import robot_sim.robots.robot_interface as ri
 from panda3d.core import CollisionNode, CollisionBox, Point3
+import copy
 import robot_sim.manipulators.machinetool.machinetool_gripper as machine
 import basis.robot_math as rm
 
@@ -33,13 +35,24 @@ class GOFA5(ri.RobotInterface):
         # arm
         arm_homeconf = np.zeros(6)
         self.arm = rbt.GOFA5(pos=pos,
-                             rotmat=self.base_stand.jnts[-1]['gl_rotmatq'],
-                             homeconf=arm_homeconf,
-                             name='arm', enable_cc=False)
+                            rotmat=self.base_stand.jnts[-1]['gl_rotmatq'],
+                            homeconf=arm_homeconf,
+                            name='arm', enable_cc=False)
         # gripper
         self.hnd = hnd.Dh60(pos=self.arm.jnts[-1]['gl_posq'],
                             rotmat=self.arm.jnts[-1]['gl_rotmatq'],
                             name='hnd_s', enable_cc=False)
+
+        self.brand =  cm.CollisionModel(os.path.join(this_dir, "meshes", "logo_01.stl"))
+        self.brand.set_rgba([1, 0, 0, 1])
+        self.brand.set_pos(self.arm.jnts[2]['gl_posq'])
+        self.brand.set_rotmat(self.arm.jnts[2]['gl_rotmatq'])
+
+        self.brand_arm = cm.CollisionModel(os.path.join(this_dir, "meshes", "logo_02.stl"))
+        self.brand_arm.set_rgba([1, 0, 0, 1])
+        self.brand_arm.set_pos(self.arm.jnts[4]['gl_posq'])
+        self.brand_arm.set_rotmat(self.arm.jnts[4]['gl_rotmatq'])
+
         # tool center point
         self.arm.jlc.tcp_jnt_id = -1
         self.arm.jlc.tcp_loc_pos = self.hnd.jaw_center_pos
@@ -54,7 +67,6 @@ class GOFA5(ri.RobotInterface):
         self.manipulator_dict['hnd'] = self.arm
         self.hnd_dict['hnd'] = self.hnd
         self.hnd_dict['arm'] = self.hnd
-
 
     @staticmethod
     def _base_combined_cdnp(name, radius):
@@ -125,8 +137,7 @@ class GOFA5(ri.RobotInterface):
         self.base_stand.fix_to(pos=pos, rotmat=rotmat)
         self.arm.fix_to(pos=self.base_stand.jnts[-1]['gl_posq'], rotmat=self.base_stand.jnts[-1]['gl_rotmatq'])
         self.hnd.fix_to(pos=self.arm.jnts[-1]['gl_posq'], rotmat=self.arm.jnts[-1]['gl_rotmatq'])
-        # self.machine.fix_to(pos=self.arm.jnts[-1]['gl_posq'], rotmat=self.arm.jnts[-1]['gl_rotmatq'])
-        # update objects in hand if available
+
         for obj_info in self.oih_infos:
             gl_pos, gl_rotmat = self.arm.cvt_loc_tcp_to_gl(obj_info['rel_pos'], obj_info['rel_rotmat'])
             obj_info['gl_pos'] = gl_pos
@@ -140,7 +151,7 @@ class GOFA5(ri.RobotInterface):
 
     def fk(self, component_name='arm', jnt_values=np.zeros(6)):
         """
-        :param jnt_values: 6 or 3+6, 3=agv, 6=arm, 1=grpr; metrics: meter-radian
+        :param jnt_values: 7 or 3+7, 3=agv, 7=arm, 1=grpr; metrics: meter-radian
         :param component_name: 'arm', 'agv', or 'all'
         :return:
         author: weiwei
@@ -158,6 +169,10 @@ class GOFA5(ri.RobotInterface):
             self.hnd_dict[component_name].fix_to(
                 pos=self.manipulator_dict[component_name].jnts[-1]['gl_posq'],
                 rotmat=self.manipulator_dict[component_name].jnts[-1]['gl_rotmatq'])
+            self.brand.set_pos(self.manipulator_dict[component_name].jnts[2]['gl_posq'])
+            self.brand.set_rotmat(self.manipulator_dict[component_name].jnts[2]['gl_rotmatq'])
+            self.brand_arm.set_pos(self.manipulator_dict[component_name].jnts[4]['gl_posq'])
+            self.brand_arm.set_rotmat(self.manipulator_dict[component_name].jnts[4]['gl_rotmatq'])
             update_oih(component_name=component_name)
             return status
 
@@ -252,8 +267,7 @@ class GOFA5(ri.RobotInterface):
                                 toggle_connjnt=toggle_connjnt).attach_to(stickmodel)
         self.hnd.gen_stickmodel(toggle_tcpcs=False,
                                 toggle_jntscs=toggle_jntscs).attach_to(stickmodel)
-        self.machine.gen_stickmodel(toggle_tcpcs=False,
-                                toggle_jntscs=toggle_jntscs).attach_to(stickmodel)
+
         return stickmodel
 
     def gen_meshmodel(self,
@@ -282,10 +296,10 @@ class GOFA5(ri.RobotInterface):
             self.hnd.gen_meshmodel(toggle_tcpcs=False,
                                    toggle_jntscs=toggle_jntscs,
                                    rgba=rgba).attach_to(meshmodel)
-        if is_machine:
-            self.machine.gen_meshmodel(toggle_tcpcs=False,
-                               toggle_jntscs=toggle_jntscs,
-                               rgba=rgba).attach_to(meshmodel)
+            brand = copy.deepcopy(self.brand)
+            brand.attach_to(meshmodel)
+            brand_arm = copy.deepcopy(self.brand_arm)
+            brand_arm.attach_to(meshmodel)
         for obj_info in self.oih_infos:
             objcm = obj_info['collision_model']
             objcm.set_pos(obj_info['gl_pos'])
