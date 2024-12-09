@@ -236,6 +236,7 @@ class reconfgripper(gp.GripperInterface):
         else:
             return self.rgt.get_jawwidth()
 
+
     def center_pos_global(self, contact_center_pos, contact_center_rotmat, mg_jawwidth, g="l"):
         if g == "l":
             x = contact_center_pos + contact_center_rotmat.dot([-0.054 - mg_jawwidth, 0, 0])
