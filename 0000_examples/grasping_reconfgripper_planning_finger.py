@@ -22,6 +22,10 @@ finger_1.set_rgba([.7, .7, .7, 1])
 finger_1.attach_to(base)
 finger_2 = cm.CollisionModel("objects/finger_a.stl")
 finger_2.set_rgba([.7, .7, .7, 1])
+finger_1_new = cm.CollisionModel("objects/finger_a.stl")
+finger_1_new.set_rgba([.7, .7, .7, 1])
+finger_2_new = cm.CollisionModel("objects/finger_a.stl")
+finger_2_new.set_rgba([.7, .7, .7, 1])
 
 # hnd_s
 if g == 'lft':
@@ -42,7 +46,7 @@ object_1.attach_to(base)
 grasp_info_list = gpa.plan_grasps(gripper, finger_1,
                                   angle_between_contact_normals=math.radians(160),
                                   openning_direction='loc_x',
-                                  max_samples=10, min_dist_between_sampled_contact_points=.005,
+                                  max_samples=100, min_dist_between_sampled_contact_points=.005,
                                   contact_offset=.001)
 gpa.write_pickle_file('holder', grasp_info_list, './', 'cobg_holder_grasps.pickle')
 # grasp_info_list = gpa.load_pickle_file('holder', './', 'cobg_holder_grasps.pickle')
@@ -82,15 +86,17 @@ gripper_m.gen_meshmodel(rgba=[0, 0, 1, .3]).attach_to(base)
 
 if g == 'lft':
     gripper_m.center_pos_global(jaw_center_pos, jaw_center_rotmat, mg_jawwidth, g="l")
-    finger_2.set_pos(np.array([-0.053 - mg_jawwidth, 0, 0]))
-    rgt_rotmat = np.dot(np.eye(3), rm.rotmat_from_euler(0, 0, math.pi))
-    finger_2.set_rotmat(rgt_rotmat)
+    finger_2_pos = np.array([-0.053 - mg_jawwidth, 0, 0])
+    finger_2.set_pos(finger_2_pos)
+    finger_2_rotmat = np.dot(np.eye(3), rm.rotmat_from_euler(0, 0, math.pi))
+    finger_2.set_rotmat(finger_2_rotmat)
     finger_2.attach_to(base)
 elif g =='rgt':
     gripper_m.center_pos_global(jaw_center_pos, jaw_center_rotmat, mg_jawwidth, g="r")
-    finger_2.set_pos(np.array([-0.053 - mg_jawwidth, 0, 0]))
-    lft_rotmat = np.dot(np.eye(3), rm.rotmat_from_euler(0, 0, math.pi))
-    finger_2.set_rotmat(lft_rotmat)
+    finger_2_pos = np.array([-0.053 - mg_jawwidth, 0, 0])
+    finger_2.set_pos(finger_2_pos)
+    finger_2_rotmat = np.dot(np.eye(3), rm.rotmat_from_euler(0, 0, math.pi))
+    finger_2.set_rotmat(finger_2_rotmat)
     finger_2.attach_to(base)
 gripper_m.gripper_bool(g='l')
 gripper_m.gripper_bool(g='r')
@@ -98,6 +104,7 @@ gripper_m.gripper_bool(g='m')
 
 gripper_b.fix_to(m_pos, m_rotmat)
 gripper_b.gen_meshmodel().attach_to(base)
+
 
 # update jawwidth_rng and jaw_center_pos
 gripper_b.set_finger_type(finger_type, jaw_center_pos, jaw_center_rotmat, 0.03, g="l")
@@ -118,6 +125,18 @@ gripper_m.fix_to(a, b)
 gripper_m.mg_jaw_to(mg_jawwidth)
 gripper_m.gen_meshmodel().attach_to(base)
 
+c = np.dot(b, m_rotmat.T)
+finger_1_pos_new = np.dot(c, np.array([0, 0, 0]) - m_pos) + a
+finger_1_rotmat_new = c
+finger_1_new.set_pos(finger_1_pos_new)
+finger_1_new.set_rotmat(finger_1_rotmat_new)
+finger_1_new.attach_to(base)
+
+finger_2_pos_new = np.dot(c, finger_2_pos - m_pos) + a
+finger_2_rotmat_new = np.dot(c, finger_2_rotmat)
+finger_2_new.set_pos(finger_2_pos_new)
+finger_2_new.set_rotmat(finger_2_rotmat_new)
+finger_2_new.attach_to(base)
 
 # gripper_m.fix_to(m_jaw_center_pos, m_jaw_center_rotmat)
 # print(m_jaw_center_pos)
