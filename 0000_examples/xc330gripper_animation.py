@@ -12,7 +12,7 @@ gripper = xc.xc330gripper()
 
 counter = [0]
 flag = [0]
-jawwidth_rng = np.linspace(0.0, 0.028, 14)
+jawwidth_rng = np.linspace(0.0, 0.03, 15)
 gripper_mesh = []
 
 def update(jawwidth_rng, counter, flag, task):
