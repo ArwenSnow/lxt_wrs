@@ -11,21 +11,21 @@ base = wd.World(cam_pos=[1, 1, 1], lookat_pos=[0, 0, 0])
 gm.gen_frame().attach_to(base)
 
 # finger_type
-finger_type = 'a'
+finger_type = 'c'
 
 # hnd_type
 g = 'lft'
 
 # finger
-finger_1 = cm.CollisionModel("objects/finger_a.stl")
+finger_1 = cm.CollisionModel("objects/finger_c.stl")
 finger_1.set_rgba([.7, .7, .7, 1])
 # finger_1.attach_to(base)
-finger_2 = cm.CollisionModel("objects/finger_a.stl")
+finger_2 = cm.CollisionModel("objects/finger_c.stl")
 finger_2.set_rgba([.7, .7, .7, 1])
 
-finger_1_new = cm.CollisionModel("objects/finger_a.stl")
+finger_1_new = cm.CollisionModel("objects/finger_c.stl")
 finger_1_new.set_rgba([.7, .7, .7, 1])
-finger_2_new = cm.CollisionModel("objects/finger_a.stl")
+finger_2_new = cm.CollisionModel("objects/finger_c.stl")
 finger_2_new.set_rgba([.7, .7, .7, 1])
 
 # hnd_s
@@ -37,7 +37,7 @@ gripper_m = rf.reconfgripper()
 gripper_b = rf.reconfgripper().body
 
 # object_s
-object_1 = cm.CollisionModel("objects/screw.stl")
+object_1 = cm.CollisionModel("objects/cylinder.stl")
 object_1.set_rgba([.9, .75, .35, 1])
 object_1.attach_to(base)
 
@@ -77,15 +77,23 @@ object_grasp_info_list = gpa.plan_grasps(gripper_b, object_1,
                                   max_samples=5, min_dist_between_sampled_contact_points=.005,
                                   contact_offset=.001)
 
-object_grasp_info = object_grasp_info_list[0]
-m_jaw_width, m_jaw_center_pos, m_jaw_center_rotmat, m_hnd_pos, m_hnd_rotmat = object_grasp_info
+new_object_grasp_info_list = []
+for object_grasp_info in object_grasp_info_list:
+    m_jaw_width, m_jaw_center_pos, m_jaw_center_rotmat, m_hnd_pos, m_hnd_rotmat = object_grasp_info
+    x, y, z = m_jaw_center_pos
+    if finger_type == 'c':
+        if z <= -1e-08 or z >= 1e-08:
+            new_object_grasp_info_list.append(object_grasp_info)
+
+new_object_grasp_info = new_object_grasp_info_list[0]
+m_jaw_width, m_jaw_center_pos, m_jaw_center_rotmat, m_hnd_pos, m_hnd_rotmat = new_object_grasp_info
 
 if finger_type == 'a':
     m_jaw_width = m_jaw_width - .00287
 elif finger_type == 'b':
     m_jaw_width = m_jaw_width - .237
 elif finger_type == 'c':
-    m_jaw_width = m_jaw_width - .04451
+    m_jaw_width = m_jaw_width - .03959
 
 if g == 'lft':
     gripper_m.lg_jaw_to(jaw_width)
@@ -142,6 +150,7 @@ finger_2_new.attach_to(base)
 print(m)
 print(n)
 print(m_jaw_width)
+print(m_jaw_center_pos)
 
 # for object_grasp_info in object_grasp_info_list:
 #     m_jaw_width, m_jaw_center_pos, m_jaw_center_rotmat, m_hnd_pos, m_hnd_rotmat = object_grasp_info

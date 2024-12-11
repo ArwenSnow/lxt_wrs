@@ -34,7 +34,7 @@ class PGC(gp.GripperInterface):
 
         self.lft.jnts[1]['loc_pos'] = np.array([-.03162, -.01135, .135])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [-1, 1]
+        self.lft.jnts[1]['motion_rng'] = [0, 1]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[1]['name'] = "fingertip1"
         self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip1.stl")
@@ -264,7 +264,7 @@ class PGC(gp.GripperInterface):
         elif self.finger_type == 'b':
             self.jawwidth_rng = [.237, .3]
         elif self.finger_type == 'c':
-            self.jawwidth_rng = [.04451, .10259]
+            self.jawwidth_rng = [.03959, .10259]
         else:
             self.jawwidth_rng = [0.0, .063]
 
