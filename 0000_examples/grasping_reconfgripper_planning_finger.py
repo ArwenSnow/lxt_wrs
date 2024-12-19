@@ -77,6 +77,9 @@ object_grasp_info_list = gpa.plan_grasps(gripper_b, object_1,
                                   max_samples=5, min_dist_between_sampled_contact_points=.005,
                                   contact_offset=.001)
 
+# object_grasp_info = object_grasp_info_list[0]
+# m_jaw_width, m_jaw_center_pos, m_jaw_center_rotmat, m_hnd_pos, m_hnd_rotmat = object_grasp_info
+
 new_object_grasp_info_list = []
 for object_grasp_info in object_grasp_info_list:
     m_jaw_width, m_jaw_center_pos, m_jaw_center_rotmat, m_hnd_pos, m_hnd_rotmat = object_grasp_info

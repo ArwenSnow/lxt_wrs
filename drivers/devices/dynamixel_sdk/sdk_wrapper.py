@@ -258,6 +258,28 @@ class DynamixelMotor(object):
         else:
             return True
 
+    def set_dxl_present_pos(self, tgt_pos: int = 0, dxl_id: int = 1) -> bool:
+        """
+        Set the goal position of the motor
+        :param tgt_pos: the target position of the motor
+        :param dxl_id: the id of the motor
+        :return: True if the goal position is set, False otherwise
+        """
+        assert isinstance(tgt_pos, int)
+        # assert self._control_table.DXL_MIN_POSITION_VAL <= tgt_pos <= self._control_table.DXL_MAX_POSITION_VAL
+        dxl_comm_result, dxl_error = self._packet_handler.write4ByteTxRx(port=self._port_handler,
+                                                                         dxl_id=dxl_id,
+                                                                         address=self._control_table.ADDR_PRESENT_POSITION,
+                                                                         data=tgt_pos)
+        if dxl_comm_result != COMM_SUCCESS:
+            # print("%s" % self._packet_handler.getTxRxResult(dxl_comm_result))
+            return False
+        elif dxl_error != 0:
+            # print("%s" % self._packet_handler.getRxPacketError(dxl_error))
+            return False
+        else:
+            return True
+
     def set_dxl_goal_pos_sync(self, tgt_pos_list: list or tuple, dxl_id_list: list or tuple) -> bool:
         if self._group_sync_write is None:
             raise Exception(

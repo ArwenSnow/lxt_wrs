@@ -15,7 +15,7 @@ class xc330gripper(object):
             self.gripper_r = dxl.DynamixelMotor(self.com, baud_rate=self.peripheral_baud,
                                               toggle_group_sync_write=True)
             id_list = [0, 1]
-            control_mode = 5
+            control_mode = 16
             for i in id_list:
                 self.gripper_r.set_dxl_op_mode(control_mode, i)
                 self.gripper_r.enable_dxl_torque(i)
@@ -69,6 +69,12 @@ class xc330gripper(object):
         self.gripper_r.set_dxl_goal_pos(tgt_pos=3707, dxl_id=1)
         sleep(5)
 
+    def get_pos(self):
+        self.gripper_r.get_dxl_pos(0)
+        print(self.gripper_r.get_dxl_pos(0))
+
+    def set_presentpos(self,tgt_pos):
+        self.gripper_r.set_dxl_present_pos(tgt_pos,0)
 
     def rg_open(self):
         '''
