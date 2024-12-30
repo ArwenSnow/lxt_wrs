@@ -1,12 +1,12 @@
 import drivers.devices.dh.dh_modbus_gripper as dh
 from time import sleep
 
-class maingripper():
-    def __init__(self, port = 'com4', baudrate = 115200, force = 10, speed = 30):
+
+class MainGripper(object):
+    def __init__(self, port='com4', baudrate=115200, force=10, speed=30):
         port = port
         baudrate = baudrate
         initstate = 0
-        # g_state = 0
         force = force
         speed = speed
         self.m_gripper = dh.dh_modbus_gripper()
@@ -15,7 +15,6 @@ class maingripper():
         while (initstate != 1):
             initstate = self.m_gripper.GetInitState()
             sleep(0.2)
-        # self.m_gripper.SetTargetPosition(400)
         self.m_gripper.SetTargetSpeed(speed)
         self.m_gripper.SetTargetForce(force)
 

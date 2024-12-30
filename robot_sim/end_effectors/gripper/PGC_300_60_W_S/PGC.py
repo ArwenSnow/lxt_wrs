@@ -12,7 +12,7 @@ import robot_sim.end_effectors.gripper.gripper_interface as gp
 class PGC(gp.GripperInterface):
 
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), coupling_offset_pos=np.zeros(3),
-                 coupling_offset_rotmat=np.eye(3), cdmesh_type='convex_hull', name='PGC_300_60_W_S',
+                 coupling_offset_rotmat=np.eye(3), cdmesh_type='box', name='PGC_300_60_W_S',
                  enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, cdmesh_type=cdmesh_type, name=name)
         this_dir, this_filename = os.path.split(__file__)
@@ -25,43 +25,66 @@ class PGC(gp.GripperInterface):
         cpl_end_pos = self.coupling.jnts[-1]['gl_posq']
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
 
-        #lft
+        # lft
         self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
         self.lft.lnks[0]['name'] = "base"
         self.lft.lnks[0]['loc_pos'] = np.zeros(3)
         self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "base.stl")
         self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
 
-        self.lft.jnts[1]['loc_pos'] = np.array([-.03162, -.01135, .135])
+        self.lft.jnts[1]['loc_pos'] = np.array([-.03352, -.01135, .135])
         self.lft.jnts[1]['type'] = 'prismatic'
         self.lft.jnts[1]['motion_rng'] = [0, 1]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[1]['name'] = "fingertip1"
         self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip1.stl")
         self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
-        self.lft.jnts[2]['loc_pos'] = np.array([.08462, -.00665, 0])
+        self.lft.jnts[2]['loc_pos'] = np.array([.08652, -.00665, 0])
         self.lft.jnts[2]['loc_rotmat'] = np.array([0, 0, 0])
         self.lft.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, 0)
 
-
-        #rgt
+        # rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
-        self.rgt.jnts[1]['loc_pos'] = np.array([.03162, .01135, .135])
+        self.rgt.jnts[1]['loc_pos'] = np.array([.03352, .01135, .135])
         self.rgt.jnts[1]['type'] = 'prismatic'
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
         self.rgt.lnks[1]['name'] = "fingertip2"
         self.rgt.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip2.stl")
         self.rgt.lnks[1]['rgba'] = [.5, .5, .5, 1]
-        self.rgt.jnts[2]['loc_pos'] = np.array([-.08462, .00665, 0])
+        self.rgt.jnts[2]['loc_pos'] = np.array([-.08652, .00665, 0])
         self.rgt.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, 0)
+
+        # object
+        self.object_1 = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='object')
+        self.object_1.lnks[0]['name'] = "screw"
+        self.object_1.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "screw.stl")
+
+        self.object_2 = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='object')
+        self.object_2.lnks[0]['name'] = "bigbox"
+        self.object_2.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "bigbox.stl")
+
+        self.object_3 = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='object')
+        self.object_3.lnks[0]['name'] = "cylinder"
+        self.object_3.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "cylinder.stl")
 
         # reinitialize
         self.lft.reinitialize()
         self.rgt.reinitialize()
+        self.object_1.reinitialize()
+        self.object_2.reinitialize()
+        self.object_3.reinitialize()
 
         # collision detection
         self.all_cdelements = []
         self.enable_cc(toggle_cdprimit=enable_cc)
+
+        base_objpath = os.path.join(this_dir, "meshes", "base.stl")
+        base = cm.CollisionModel(base_objpath, cdprimit_type='box')
+        # fingertip1_objpath = os.path.join(this_dir, "meshes", "fingertip1.stl")
+        # fingertip1 = cm.CollisionModel(fingertip1_objpath, cdprimit_type='box')
+        # fingertip2_objpath = os.path.join(this_dir, "meshes", "fingertip2.stl")
+        # fingertip2 = cm.CollisionModel(fingertip2_objpath, cdprimit_type='box')
+        self.collision_model = base
 
         # finger_type
         self.finger_type = None
@@ -72,39 +95,6 @@ class PGC(gp.GripperInterface):
         # jaw center
         self.jaw_center_pos = np.array([0, 0, 0.2012]) + coupling_offset_pos
         self.jaw_center_rotmat = np.eye(3)
-
-    @staticmethod
-    def _finger_cdnp(name, radius):
-        collision_node = CollisionNode(name)
-        collision_primitive_c0 = CollisionBox(Point3(-.0035, 0.004, .025 + .003),
-                                              x=.0035 + radius, y=0.0032 + radius, z=.025 + .003 + radius)
-        collision_node.addSolid(collision_primitive_c0)
-        collision_primitive_c1 = CollisionBox(Point3(.008, 0.028 - .002, -.011),
-                                              x=.018 + radius, y=0.008 + radius, z=.011 + radius)
-        collision_node.addSolid(collision_primitive_c1)
-        collision_primitive_c2 = CollisionBox(Point3(-.005, 0.012 - .002, -.002 + .0025),
-                                              x=.005 + radius, y=0.008 + radius, z=.002 + .0025 + radius)
-        collision_node.addSolid(collision_primitive_c2)
-        return collision_node
-
-    @staticmethod
-    def _hnd_base_cdnp(name, radius):
-        collision_node = CollisionNode(name)
-        collision_primitive_c0 = CollisionBox(Point3(0, 0, .031),
-                                              x=.036 + radius, y=0.038 + radius, z=.031 + radius)
-        collision_node.addSolid(collision_primitive_c0)  # 0.62
-        collision_primitive_c1 = CollisionBox(Point3(0, 0, .067),
-                                              x=.036 + radius, y=0.027 + radius, z=.003 + radius)
-        collision_node.addSolid(collision_primitive_c1)  # 0.06700000
-        #
-        collision_primitive_c2 = CollisionBox(Point3(.006, .049, .0485),
-                                              x=.02 + radius, y=.02 + radius, z=.015 + radius)
-        collision_node.addSolid(collision_primitive_c2)
-        collision_primitive_c3 = CollisionBox(Point3(0, 0, .08),
-                                              x=.013 + radius, y=0.013 + radius, z=.005 + radius)
-        collision_node.addSolid(collision_primitive_c3)
-
-        return collision_node
 
     def enable_cc(self, toggle_cdprimit):
         if toggle_cdprimit:
@@ -349,7 +339,7 @@ if __name__ == '__main__':
     grpr = PGC(enable_cc=True)
     # grpr.gen_meshmodel().attach_to(base)
     grpr.mg_close()
-    grpr.jaw_to(0.03)
+    grpr.jaw_to(0.0)
     jawwidth = grpr.get_jawwidth()
     print(jawwidth)
     grpr.gen_meshmodel().attach_to(base)

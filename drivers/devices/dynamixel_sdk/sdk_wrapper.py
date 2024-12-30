@@ -258,28 +258,6 @@ class DynamixelMotor(object):
         else:
             return True
 
-    def set_dxl_present_pos(self, tgt_pos: int = 0, dxl_id: int = 1) -> bool:
-        """
-        Set the goal position of the motor
-        :param tgt_pos: the target position of the motor
-        :param dxl_id: the id of the motor
-        :return: True if the goal position is set, False otherwise
-        """
-        assert isinstance(tgt_pos, int)
-        # assert self._control_table.DXL_MIN_POSITION_VAL <= tgt_pos <= self._control_table.DXL_MAX_POSITION_VAL
-        dxl_comm_result, dxl_error = self._packet_handler.write4ByteTxRx(port=self._port_handler,
-                                                                         dxl_id=dxl_id,
-                                                                         address=self._control_table.ADDR_PRESENT_POSITION,
-                                                                         data=tgt_pos)
-        if dxl_comm_result != COMM_SUCCESS:
-            # print("%s" % self._packet_handler.getTxRxResult(dxl_comm_result))
-            return False
-        elif dxl_error != 0:
-            # print("%s" % self._packet_handler.getRxPacketError(dxl_error))
-            return False
-        else:
-            return True
-
     def set_dxl_goal_pos_sync(self, tgt_pos_list: list or tuple, dxl_id_list: list or tuple) -> bool:
         if self._group_sync_write is None:
             raise Exception(
@@ -428,7 +406,7 @@ class DynamixelMotor(object):
         """
         raise NotImplementedError
 
-    def set_dxl_goal_current(self, tgt_current: int, dxl_id: int):
+    def set_dxl_goal_current(self, tgt_current: int, dxl_id: int, bidirection=False):
         """
         Set the goal current of the motor
         :param tgt_current: the target current of the motor
@@ -436,7 +414,10 @@ class DynamixelMotor(object):
         :return: True if the goal current is set, False otherwise
         """
         assert isinstance(tgt_current, int)
-        assert self._control_table.DXL_MIN_CURRENT_VAL <= tgt_current <= self._control_table.DXL_MAX_CURRENT_VAL
+        if bidirection:
+            assert -self._control_table.DXL_MAX_CURRENT_VAL <= tgt_current <= self._control_table.DXL_MAX_CURRENT_VAL
+        else:
+            assert self._control_table.DXL_MIN_CURRENT_VAL <= tgt_current <= self._control_table.DXL_MAX_CURRENT_VAL
         dxl_comm_result, dxl_error = self._packet_handler.write2ByteTxRx(port=self._port_handler,
                                                                          dxl_id=dxl_id,
                                                                          address=self._control_table.ADDR_GOAL_CURRENT,
@@ -626,8 +607,8 @@ class DynamixelMotor(object):
 if __name__ == "__main__":
     from drivers.xarm.wrapper import XArmAPI
 
-    peripheral_baud = 115200
-    com = 'COM7'
+    peripheral_baud = 57600
+    com = 'COM3'
     dxl_con = DynamixelMotor(com, baud_rate=peripheral_baud)
     # r = dxl_con.ping()
     # print(dxl_con.get_dxl_position_p_gain())
@@ -645,69 +626,72 @@ if __name__ == "__main__":
     # print("is moving:", dxl_con.is_moving())
     # # print(r)
 
-    # 1341  2252
-    # 3083 4012
 
     # # exit(0)
     # dxl_con.set_dxl_position_p_gain(300, 1)
-    print("?")
-    dxl_con.set_dxl_current_limit(400, 1)
-    print("!")
-    dxl_con.set_dxl_current_limit(400, 2)
-    print("!")
-    time.sleep(1)
-    print("?")
-    print(dxl_con.get_dxl_current_limit(1), dxl_con.get_dxl_current_limit(2))
-    print("?")
-    dxl_con.set_dxl_op_mode(5, 1)
-    dxl_con.set_dxl_op_mode(5, 2)
-    time.sleep(.2)
+
+
+    # dxl_con.set_dxl_current_limit(400, 1)
+    # dxl_con.set_dxl_current_limit(400, 2)
+    #
+    # time.sleep(1)
+    #
+    # print(dxl_con.get_dxl_current_limit(1), dxl_con.get_dxl_current_limit(2))
     dxl_con.enable_dxl_torque(1)
-    dxl_con.enable_dxl_torque(2)
-    dxl_con.set_dxl_goal_current(160, 1)
-    dxl_con.set_dxl_goal_current(160, 2)
+    dxl_con.set_dxl_op_mode(5, 1)
     time.sleep(1)
-    # dxl_con.set_dxl_goal_pos(20)
-
-    # a = dxl_con.set_dxl_goal_current(20)
-    # dxl_con.set_dxl_position_p_gain(50)
-    # print("Set torque", a)
-    # print(a)
-    # dxl_con.set_dxl_goal_pos(1000)
-    # # print("is moving:", dxl_con.is_moving())
-    # time.sleep(2)
-    # dxl_con.set_dxl_goal_pos(389)
-    # time.sleep(2)
-    # dxl_con.set_dxl_goal_current(100, 1)
-
-
-    while 1:
-        v = 1500
-        s1 = 1373 + v
-        s2 = 1112 + v
-        # dxl_con.set_dxl_position_p_gain(100, 1)
-        # dxl_con.set_dxl_position_p_gain(100, 2)
-        dxl_con.set_dxl_position_p_gain(50, 1)
-        dxl_con.set_dxl_position_p_gain(50, 2)
-        dxl_con.set_dxl_goal_current(80, 1)
-        dxl_con.set_dxl_goal_current(80, 2)
-        dxl_con.set_dxl_goal_pos(s1, 1)
-        dxl_con.set_dxl_goal_pos(s2, 2)
-        print(dxl_con.get_dxl_current(1), dxl_con.get_dxl_current(2))
-        # exit(0)
-        input('b')
-
-        v = -1000
-        s1 = 1373 + v
-        s2 = 1112 + v
-        dxl_con.set_dxl_goal_current(170, 1)
-        dxl_con.set_dxl_goal_current(170, 2)
-        dxl_con.set_dxl_position_p_gain(20, 1)
-        dxl_con.set_dxl_position_p_gain(20, 2)
-        dxl_con.set_dxl_goal_pos(s1, 1)
-        dxl_con.set_dxl_goal_pos(s2, 2)
-
-        input('a')
-
-    # dxl_con.disable_dxl_torque(1)
-    # dxl_con.disable_dxl_torque(2)
+    dxl_con.set_dxl_goal_current(100, 1)
+    time.sleep(1)
+    dxl_con.set_dxl_goal_pos(389, 1)
+    dxl_con.disable_dxl_torque(1)
+    # dxl_con.set_dxl_op_mode(5, 2)
+    # time.sleep(.2)
+    # dxl_con.enable_dxl_torque(1)
+    # dxl_con.enable_dxl_torque(2)
+    # dxl_con.set_dxl_goal_current(160, 1)
+    # dxl_con.set_dxl_goal_current(160, 2)
+    # time.sleep(1)
+    # # dxl_con.set_dxl_goal_pos(20)
+    #
+    # # a = dxl_con.set_dxl_goal_current(20)
+    # # dxl_con.set_dxl_position_p_gain(50)
+    # # print("Set torque", a)
+    # # print(a)
+    # # dxl_con.set_dxl_goal_pos(1000)
+    # # # print("is moving:", dxl_con.is_moving())
+    # # time.sleep(2)
+    # # dxl_con.set_dxl_goal_pos(389)
+    # # time.sleep(2)
+    # # dxl_con.set_dxl_goal_current(100, 1)
+    #
+    #
+    # while 1:
+    #     v = 1500
+    #     s1 = 1373 + v
+    #     s2 = 1112 + v
+    #     # dxl_con.set_dxl_position_p_gain(100, 1)
+    #     # dxl_con.set_dxl_position_p_gain(100, 2)
+    #     dxl_con.set_dxl_position_p_gain(50, 1)
+    #     dxl_con.set_dxl_position_p_gain(50, 2)
+    #     dxl_con.set_dxl_goal_current(80, 1)
+    #     dxl_con.set_dxl_goal_current(80, 2)
+    #     dxl_con.set_dxl_goal_pos(s1, 1)
+    #     dxl_con.set_dxl_goal_pos(s2, 2)
+    #     print(dxl_con.get_dxl_current(1), dxl_con.get_dxl_current(2))
+    #     # exit(0)
+    #     input('b')
+    #
+    #     v = -1000
+    #     s1 = 1373 + v
+    #     s2 = 1112 + v
+    #     dxl_con.set_dxl_goal_current(170, 1)
+    #     dxl_con.set_dxl_goal_current(170, 2)
+    #     dxl_con.set_dxl_position_p_gain(20, 1)
+    #     dxl_con.set_dxl_position_p_gain(20, 2)
+    #     dxl_con.set_dxl_goal_pos(s1, 1)
+    #     dxl_con.set_dxl_goal_pos(s2, 2)
+    #
+    #     input('a')
+    #
+    # # dxl_con.disable_dxl_torque(1)
+    # # dxl_con.disable_dxl_torque(2)

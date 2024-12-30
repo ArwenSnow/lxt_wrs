@@ -42,6 +42,29 @@ class reconfgripper(gp.GripperInterface):
         self.gripper_dict['rgt'] = self.rgt
         self.gripper_dict['main'] = self.body
 
+        # collision detection
+        self.all_cdelements = []
+        self.enable_cc(toggle_cdprimit=enable_cc)
+
+
+    def current_object(self, current_pos, current_rotmat):
+        self.body.object_2.lnks[0]['loc_pos'] = current_pos
+        self.body.object_2.lnks[0]['loc_rotmat'] = current_rotmat
+
+    def enable_cc(self, toggle_cdprimit):
+        if toggle_cdprimit:
+            super().enable_cc()
+            # cdprimit
+            self.cc.add_cdlnks(self.body.object_2, [0])
+            activelist = [self.body.object_2.lnks[0]]
+            self.cc.set_active_cdlnks(activelist)
+            self.all_cdelements = self.cc.all_cdelements
+        else:
+            self.all_cdelements = [self.body.object_2.lnks[0]]
+        # cdmesh
+        for cdelement in self.all_cdelements:
+            cdmesh = cdelement['collision_model'].copy()
+            self.cdmesh_collection.add_cm(cdmesh)
 
     def fix_to(self, pos, rotmat):
         self.pos = pos

@@ -31,9 +31,9 @@ class xc330gripper(gp.GripperInterface):
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
         # - lft
         self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
-        self.lft.jnts[1]['loc_pos'] = np.array([-.0183, .0255, .0412])
+        self.lft.jnts[1]['loc_pos'] = np.array([-.0178, .0255, .0412])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [0, .015]
+        self.lft.jnts[1]['motion_rng'] = [0, .0145]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[0]['name'] = "body"
         self.lft.lnks[0]['loc_pos'] = np.zeros(3)
@@ -44,9 +44,9 @@ class xc330gripper(gp.GripperInterface):
         self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
         # - rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
-        self.rgt.jnts[1]['loc_pos'] = np.array([-.0347, .0105, .0412])
+        self.rgt.jnts[1]['loc_pos'] = np.array([-.0352, .0105, .0412])
         self.rgt.jnts[1]['type'] = 'prismatic'
-        self.rgt.jnts[1]['motion_rng'] = [0, .015]
+        self.rgt.jnts[1]['motion_rng'] = [0, .0145]
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
         self.rgt.lnks[1]['name'] = "rgt"
         self.rgt.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "rgt.stl")
@@ -57,7 +57,7 @@ class xc330gripper(gp.GripperInterface):
         self.lft.reinitialize()
         self.rgt.reinitialize()
         # jaw width
-        self.jawwidth_rng = [0, .03]
+        self.jawwidth_rng = [0, .029]
         # collision detection
         self.all_cdelements = []
         self.enable_cc(toggle_cdprimit=enable_cc)
@@ -82,8 +82,8 @@ class xc330gripper(gp.GripperInterface):
         self.pos = pos
         self.rotmat = rotmat
         if jawwidth is not None:
-            side_jawwidth = (.03 - jawwidth) / 2.0
-            if 0 <= side_jawwidth <= .015:
+            side_jawwidth = (.029 - jawwidth) / 2.0
+            if 0 <= side_jawwidth <= .0145:
                 self.lft.jnts[1]['motion_val'] = side_jawwidth;
                 self.rgt.jnts[1]['motion_val'] = self.lft.jnts[1]['motion_val']
             else:
@@ -108,7 +108,7 @@ class xc330gripper(gp.GripperInterface):
             raise ValueError("The motion_val parameter is out of range!")
 
     def jaw_to(self, jaw_width):
-        if jaw_width > .03:
+        if jaw_width > .029:
             raise ValueError("The jawwidth parameter is out of range!")
         self.fk(motion_val=( jaw_width) / 2.0)
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0])
     gm.gen_frame().attach_to(base)
     grpr = xc330gripper()
-    grpr.jaw_to(0.03)
+    grpr.jaw_to(0.029)
     grpr.gen_meshmodel().attach_to(base)
     # grpr.gen_stickmodel(togglejntscs=False).attach_to(base)
     grpr.fix_to(pos=np.array([0, .2, .2]), rotmat=rm.rotmat_from_axangle([1, 0, 0], .05))

@@ -1,5 +1,5 @@
 import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as rf
-import robot_con.maingripper.maingripper as mg
+import robot_con.reconfgripper.maingripper.maingripper as mg
 
 if __name__ == '__main__':
 
