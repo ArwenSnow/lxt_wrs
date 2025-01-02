@@ -11,21 +11,21 @@ base = wd.World(cam_pos=[1, 1, 1], lookat_pos=[0, 0, 0])
 gm.gen_frame().attach_to(base)
 
 # finger_type
-finger_type = 'b'
+finger_type = 'c'
 
 # hnd_type
 g = 'lft'
 
 # finger_s
-finger_1 = cm.CollisionModel("objects/finger_b.stl")
+finger_1 = cm.CollisionModel("objects/finger_c.stl")
 finger_1.set_rgba([.7, .7, .7, 1])
 finger_1.attach_to(base)
-finger_2 = cm.CollisionModel("objects/finger_b.stl")
+finger_2 = cm.CollisionModel("objects/finger_c.stl")
 finger_2.set_rgba([.7, .7, .7, 1])
 
-finger_1_new = cm.CollisionModel("objects/finger_b.stl")
+finger_1_new = cm.CollisionModel("objects/finger_c.stl")
 finger_1_new.set_rgba([.7, .7, .7, 1])
-finger_2_new = cm.CollisionModel("objects/finger_b.stl")
+finger_2_new = cm.CollisionModel("objects/finger_c.stl")
 finger_2_new.set_rgba([.7, .7, .7, 1])
 
 # hnd_s
@@ -58,11 +58,11 @@ object_2.set_rgba([.9, .75, .35, 1])
 object_3 = cm.CollisionModel("objects/cylinder.stl")
 object_3.set_rgba([.9, .75, .35, 1])
 
-object = object_2
+object = object_3
 # object.attach_to(base)
 
 # gripper_grasp_finger
-grasp_info_list = gpa.plan_grasps(gripper, tool,
+grasp_info_list = gpa.plan_grasps(gripper, finger_1,
                                   angle_between_contact_normals=math.radians(160),
                                   openning_direction='loc_x',
                                   max_samples=100, min_dist_between_sampled_contact_points=.005,

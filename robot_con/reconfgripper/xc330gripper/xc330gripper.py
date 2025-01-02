@@ -18,16 +18,22 @@ class Xc330Gripper(object):
             for i in id_list:
                 self.gripper_r.set_dxl_op_mode(control_mode, i)
                 self.gripper_r.enable_dxl_torque(i)
-                self.gripper_r.set_dxl_pro_vel(20, i)
-                self.gripper_r.set_dxl_current_limit(80, i)
+                self.gripper_r.set_dxl_current_limit(910, i)
         else:
             print("please set real gripper on")
 
-    def init_gripper(self):
+    def init_lg(self):
         current = int(25/61.3656*1000)
         self.gripper_r.set_dxl_goal_current(current*-1, 1, bidirection=True)
         sleep(20)
         self.gripper_r.set_dxl_goal_current(current, 1, bidirection=True)
+        sleep(2)
+
+    def init_rg(self):
+        current = int(25/61.3656*1000)
+        self.gripper_r.set_dxl_goal_current(current*-1, 0, bidirection=True)
+        sleep(20)
+        self.gripper_r.set_dxl_goal_current(current, 0, bidirection=True)
         sleep(2)
 
     def lg_grasp_with_force(self, force):
@@ -37,57 +43,55 @@ class Xc330Gripper(object):
         self.gripper_r.set_dxl_goal_current(current_val, 1, bidirection=True)
         pre_current = self.gripper_r.get_dxl_current(1)
         print(pre_current)
-        # sleep(10)
+        sleep(2)
 
     def lg_open(self):
         default_force = 7
         current_val = default_force/61.3656*1000
         current_val = int(current_val)
-        # print(current_val)
+        print(current_val)
         self.gripper_r.set_dxl_goal_current(current_val, 1, bidirection=True)
         pre_current = self.gripper_r.get_dxl_current(1)
-        # print(pre_current)
+        print(pre_current)
         sleep(1)
 
     def lg_close(self):
-        default_force = 10
+        default_force = 7
         current_val = -(default_force/61.3656*1000)
         current_val = int(current_val)
+        print(current_val)
         self.gripper_r.set_dxl_goal_current(current_val, 1, bidirection=True)
         pre_current = self.gripper_r.get_dxl_current(1)
-        # print(pre_current)
+        print(pre_current)
         sleep(1)
-
-    def aaa(self):
-        self.gripper_r.set_dxl_goal_current(-60, 0, bidirection=True)
 
     def rg_grasp_with_force(self, force):
         current_val = force/61.3656*1000
         current_val = int(current_val)
-        # print(current_val)
+        print(current_val)
         self.gripper_r.set_dxl_goal_current(current_val, 0, bidirection=True)
         pre_current = self.gripper_r.get_dxl_current(0)
-        # print(pre_current)
+        print(pre_current)
         sleep(1)
 
     def rg_open(self):
-        default_force = 10
+        default_force = 7
         current_val = default_force / 61.3656 * 1000
         current_val = int(current_val)
-        # print(current_val)
+        print(current_val)
         self.gripper_r.set_dxl_goal_current(current_val, 0, bidirection=True)
         pre_current = self.gripper_r.get_dxl_current(0)
-        # print(pre_current)
+        print(pre_current)
         sleep(1)
 
     def rg_close(self):
-        default_force = 10
+        default_force = 7
         current_val = -(default_force / 61.3656 * 1000)
         current_val = int(current_val)
-        # print(current_val)
+        print(current_val)
         self.gripper_r.set_dxl_goal_current(current_val, 0, bidirection=True)
         pre_current = self.gripper_r.get_dxl_current(0)
-        # print(pre_current)
+        print(pre_current)
         sleep(1)
 
 

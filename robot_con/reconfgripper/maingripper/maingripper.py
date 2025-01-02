@@ -3,7 +3,7 @@ from time import sleep
 
 
 class MainGripper(object):
-    def __init__(self, port='com4', baudrate=115200, force=10, speed=30):
+    def __init__(self, port='com5', baudrate=115200, force=10, speed=30):
         port = port
         baudrate = baudrate
         initstate = 0
