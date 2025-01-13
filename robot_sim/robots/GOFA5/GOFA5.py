@@ -290,7 +290,7 @@ if __name__ == '__main__':
 
     gm.gen_frame().attach_to(base)
     robot_s = GOFA5(enable_cc=True)
-    robot_s.gen_meshmodel(toggle_tcpcs=False, toggle_jntscs=False).attach_to(base)
+    robot_s.gen_meshmodel(toggle_tcpcs=True, toggle_jntscs=True).attach_to(base)
     tgt_pos = np.array([.25, .2, .15])
     tgt_rotmat = rm.rotmat_from_axangle([0, 1, 0], math.pi * 2 / 3)
     # gm.gen_frame(pos=tgt_pos, rotmat=tgt_rotmat).attach_to(base)
@@ -300,7 +300,7 @@ if __name__ == '__main__':
     component_name = 'arm'
     jnt_values = robot_s.ik(component_name, tgt_pos, tgt_rotmat)
     robot_s.fk(component_name, jnt_values=jnt_values)
-    robot_s_meshmodel = robot_s.gen_meshmodel(toggle_tcpcs=False)
+    robot_s_meshmodel = robot_s.gen_meshmodel(toggle_tcpcs=True)
     robot_s_meshmodel.attach_to(base)
     robot_s.gen_stickmodel().attach_to(base)
     tic = time.time()
