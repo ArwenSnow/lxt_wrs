@@ -59,12 +59,9 @@ class GOFA12(ri.RobotInterface):  #定义机器人类：GOFA12，继承自ri.Rob
     @staticmethod
     def _base_combined_cdnp(name, radius):
         collision_node = CollisionNode(name)
-        # collision_primitive_c0 = CollisionBox(Point3(-0.1, 0.0, 0.14 - 0.82),
-        #                                     x=.35 + radius, y=.3 + radius, z=.14 + radius)
-        #collision_node.addSolid(collision_primitive_c0)
-        collision_primitive_c1 = CollisionBox(Point3(0.0, 0.0, .1),
+        collision_primitive_c0 = CollisionBox(Point3(0.0, 0.0, .1),
                                               x=.112 + radius, y=.112 + radius, z=.2 + radius)
-        collision_node.addSolid(collision_primitive_c1)
+        collision_node.addSolid(collision_primitive_c0)
         return collision_node  #创建碰撞盒模型
 
     def enable_cc(self):  #碰撞检测

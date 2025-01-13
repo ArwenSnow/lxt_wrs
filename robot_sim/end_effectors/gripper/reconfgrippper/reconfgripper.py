@@ -262,15 +262,15 @@ class reconfgripper(gp.GripperInterface):
 
     def center_pos_global(self, contact_center_pos, contact_center_rotmat, mg_jawwidth, g="l"):
         if g == "l":
-            x = contact_center_pos + contact_center_rotmat.dot([-0.054 - mg_jawwidth, 0, 0])
-            y = contact_center_pos + contact_center_rotmat.dot([-0.027 - mg_jawwidth / 2, .018, -0.2012])
+            x = contact_center_pos + contact_center_rotmat.dot([-0.053 - mg_jawwidth, 0, 0])
+            y = contact_center_pos + contact_center_rotmat.dot([-0.0265 - mg_jawwidth / 2, .018, -0.2012])
             print(f"左夹爪中心在全局坐标系下的坐标为：{contact_center_pos}")
             print(f"右夹爪中心在全局坐标系下的坐标为：{x}")
             print(f"大夹爪中心在全局坐标系下的坐标为：{y}")
             return x, y
         elif g == "r":
-            x = contact_center_pos + contact_center_rotmat.dot([0.054 + mg_jawwidth, 0, 0])
-            y = contact_center_pos + contact_center_rotmat.dot([0.027 + mg_jawwidth / 2, -.018, -0.2012])
+            x = contact_center_pos + contact_center_rotmat.dot([0.053 + mg_jawwidth, 0, 0])
+            y = contact_center_pos + contact_center_rotmat.dot([0.0265 + mg_jawwidth / 2, -.018, -0.2012])
             print(f"左夹爪中心在全局坐标系下的坐标为：{x}")
             print(f"右夹爪中心在全局坐标系下的坐标为：{contact_center_pos}")
             print(f"大夹爪中心在全局坐标系下的坐标为：{y}")

@@ -32,9 +32,9 @@ class PGC(gp.GripperInterface):
         self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "base.stl")
         self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
 
-        self.lft.jnts[1]['loc_pos'] = np.array([-.03352, -.01135, .135])
+        self.lft.jnts[1]['loc_pos'] = np.array([-.03352, -.01135, .132])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [0, 1]
+        self.lft.jnts[1]['motion_rng'] = [0, 5]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[1]['name'] = "fingertip1"
         self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip1.stl")
@@ -45,7 +45,7 @@ class PGC(gp.GripperInterface):
 
         # rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
-        self.rgt.jnts[1]['loc_pos'] = np.array([.03352, .01135, .135])
+        self.rgt.jnts[1]['loc_pos'] = np.array([.03352, .01135, .132])
         self.rgt.jnts[1]['type'] = 'prismatic'
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
         self.rgt.lnks[1]['name'] = "fingertip2"
@@ -93,7 +93,7 @@ class PGC(gp.GripperInterface):
         self.jawwidth_rng = [0.0, .063]
 
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, 0.2012]) + coupling_offset_pos
+        self.jaw_center_pos = np.array([0, 0, 0.1982]) + coupling_offset_pos
         self.jaw_center_rotmat = np.eye(3)
 
     def enable_cc(self, toggle_cdprimit):
@@ -269,14 +269,14 @@ class PGC(gp.GripperInterface):
                 finger_pos_world = np.array([-(0.053 + mg_jawwidth) / 2, 0, .06272])
                 rotmat_world_to_gripper = jaw_center_rotmat.T
                 finger_pos_gripper = (np.dot(rotmat_world_to_gripper, (finger_pos_world - jaw_center_pos))
-                                      + np.array([(0.053 + mg_jawwidth) / 2, 0, .2012]))
+                                      + np.array([(0.053 + mg_jawwidth) / 2, 0, .1982]))
                 self.jaw_center_pos = finger_pos_gripper
                 self.jaw_center_rotmat = rotmat_world_to_gripper
             elif g == "r":
                 finger_pos_world = np.array([-(0.053 + mg_jawwidth) / 2, 0, .06272])
                 rotmat_world_to_gripper = jaw_center_rotmat.T
                 finger_pos_gripper = (np.dot(rotmat_world_to_gripper, (finger_pos_world - jaw_center_pos))
-                                      + np.array([-(0.053 + mg_jawwidth) / 2, 0, .2012]))
+                                      + np.array([-(0.053 + mg_jawwidth) / 2, 0, .1982]))
                 self.jaw_center_pos = finger_pos_gripper
                 self.jaw_center_rotmat = rotmat_world_to_gripper
 
@@ -285,14 +285,14 @@ class PGC(gp.GripperInterface):
                 finger_pos_world = np.array([-(0.053 + mg_jawwidth) / 2, 0, .08858])
                 rotmat_world_to_gripper = jaw_center_rotmat.T
                 finger_pos_gripper = (np.dot(rotmat_world_to_gripper, (finger_pos_world - jaw_center_pos))
-                                      + np.array([(0.053 + mg_jawwidth) / 2, 0, .2012]))
+                                      + np.array([(0.053 + mg_jawwidth) / 2, 0, .1982]))
                 self.jaw_center_pos = finger_pos_gripper
                 self.jaw_center_rotmat = rotmat_world_to_gripper
             elif g == "r":
                 finger_pos_world = np.array([-(0.053 + mg_jawwidth) / 2, 0, .08858])
                 rotmat_world_to_gripper = jaw_center_rotmat.T
                 finger_pos_gripper = (np.dot(rotmat_world_to_gripper, (finger_pos_world - jaw_center_pos))
-                                      + np.array([-(0.053 + mg_jawwidth) / 2, 0, .2012]))
+                                      + np.array([-(0.053 + mg_jawwidth) / 2, 0, .1982]))
                 self.jaw_center_pos = finger_pos_gripper
                 self.jaw_center_rotmat = rotmat_world_to_gripper
 
@@ -301,18 +301,18 @@ class PGC(gp.GripperInterface):
                 finger_pos_world = np.array([-(0.053 + mg_jawwidth) / 2, 0, .07469])
                 rotmat_world_to_gripper = jaw_center_rotmat.T
                 finger_pos_gripper = (np.dot(rotmat_world_to_gripper, (finger_pos_world - jaw_center_pos))
-                                      + np.array([(0.053 + mg_jawwidth) / 2, 0, .2012]))
+                                      + np.array([(0.053 + mg_jawwidth) / 2, 0, .1982]))
                 self.jaw_center_pos = finger_pos_gripper
                 self.jaw_center_rotmat = rotmat_world_to_gripper
             elif g == "r":
                 finger_pos_world = np.array([-(0.053 + mg_jawwidth) / 2, 0, .07469])
                 rotmat_world_to_gripper = jaw_center_rotmat.T
                 finger_pos_gripper = (np.dot(rotmat_world_to_gripper, (finger_pos_world - jaw_center_pos))
-                                      + np.array([-(0.053 + mg_jawwidth) / 2, 0, .2012]))
+                                      + np.array([-(0.053 + mg_jawwidth) / 2, 0, .1982]))
                 self.jaw_center_pos = finger_pos_gripper
                 self.jaw_center_rotmat = rotmat_world_to_gripper
         else:
-            self.jaw_center_pos = np.array([0, 0, 0.2012])
+            self.jaw_center_pos = np.array([0, 0, 0.1982])
 
     def set_jaw_center_rotmat(self, a):
         self.jaw_center_rotmat = a

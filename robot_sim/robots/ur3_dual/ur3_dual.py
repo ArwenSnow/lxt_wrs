@@ -767,7 +767,7 @@ if __name__ == '__main__':
     base = wd.World(cam_pos=[2, 0, 3], lookat_pos=[0, 0, 1])
     gm.gen_frame().attach_to(base)
     u3d = UR3Dual()
-    # u3d.show_cdprimit()
+    u3d.show_cdprimit()
     # u3d.fk(.85)
     u3d_meshmodel = u3d.gen_meshmodel(toggle_tcpcs=True)
     u3d_meshmodel.attach_to(base)
