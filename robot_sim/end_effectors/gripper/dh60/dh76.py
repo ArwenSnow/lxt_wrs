@@ -26,13 +26,13 @@ class Dh60(gp.GripperInterface):
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
 
         # fingertip
-        self.fingertip_type = 's_60'
-        if self.fingertip_type == 's_60':  # 切换成dh60原装手指，方接触面，60行程。
-            self.fingertip_1 = os.path.join(this_dir, "meshes", "short_fingertip_60_1.stl")
-            self.fingertip_2 = os.path.join(this_dir, "meshes", "short_fingertip_60_2.stl")
-        elif self.fingertip_type == 'l_60':  # 切换成加长版手指，方接触面，60行程。
-            self.fingertip_1 = os.path.join(this_dir, "meshes", "long_fingertip_60_1.stl")
-            self.fingertip_2 = os.path.join(this_dir, "meshes", "long_fingertip_60_2.stl")
+        self.fingertip_type = 'l_76'
+        if self.fingertip_type == 'l_76':  # 切换成加长版手指，方接触面，76行程。
+            self.fingertip_1 = os.path.join(this_dir, "meshes", "long_fingertip_76_1.stl")
+            self.fingertip_2 = os.path.join(this_dir, "meshes", "long_fingertip_76_2.stl")
+        elif self.fingertip_type == 'r_76':  # 切换成加长版手指，圆接触面，76行程。
+            self.fingertip_1 = os.path.join(this_dir, "meshes", "round_long_fingertip_76_1.stl")
+            self.fingertip_2 = os.path.join(this_dir, "meshes", "round_long_fingertip_76_2.stl")
 
         # lft
         self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
@@ -41,9 +41,9 @@ class Dh60(gp.GripperInterface):
         self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "base.stl")
         self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
 
-        self.lft.jnts[1]['loc_pos'] = np.array([.0062, -.01635, .14])
+        self.lft.jnts[1]['loc_pos'] = np.array([-.0018, -.01635, .14])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [0, .03]
+        self.lft.jnts[1]['motion_rng'] = [0, .038]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[1]['name'] = "finger1"
         self.lft.lnks[1]['mesh_file'] = self.fingertip_1
@@ -54,7 +54,7 @@ class Dh60(gp.GripperInterface):
 
         # rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
-        self.rgt.jnts[1]['loc_pos'] = np.array([-.0062, .01635, .14])
+        self.rgt.jnts[1]['loc_pos'] = np.array([.0018, .01635, .14])
         self.rgt.jnts[1]['type'] = 'prismatic'
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
         self.rgt.lnks[1]['name'] = "finger2"
@@ -73,7 +73,7 @@ class Dh60(gp.GripperInterface):
         self.enable_cc(toggle_cdprimit=enable_cc)
 
         # jaw width
-        self.jawwidth_rng = [0.0, .06]
+        self.jawwidth_rng = [0.0, .076]
         # jaw center
         self.jaw_center_pos = np.array([0, 0, .18]) + coupling_offset_pos
         # collision detection
@@ -248,7 +248,7 @@ class Dh60(gp.GripperInterface):
         '''
         gripper open
         '''
-        self.jaw_to(.06)
+        self.jaw_to(.076)
 
     def close(self):
         '''
@@ -268,6 +268,6 @@ if __name__ == '__main__':
     # cm.CollisionModel("meshes/dual_realsense.stl", expand_radius=.001).attach_to(base)
     grpr = Dh60(enable_cc=True)
     # grpr.show_cdprimit()
-    # grpr.open()
+    grpr.open()
     grpr.gen_meshmodel().attach_to(base)
     base.run()
