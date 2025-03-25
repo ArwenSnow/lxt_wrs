@@ -27,13 +27,13 @@ def go_init():
     rbt_r.move_jntspace_path(path)
 
 if __name__ == '__main__':
-    # base = wd.World(cam_pos=[4.16951, 1.8771, 1.70872], lookat_pos=[0, 0, 0.5])
-    # gm.gen_frame().attach_to(base)
-    #
-    # rbt_s = gf5.GOFA5()
-    # rbt_r = gofa_con.GoFaArmController()
-    # rrtc_s = rrtc.RRTConnect(rbt_s)
-    #
+    base = wd.World(cam_pos=[4.16951, 1.8771, 1.70872], lookat_pos=[0, 0, 0.5])
+    gm.gen_frame().attach_to(base)
+
+    rbt_s = gf5.GOFA5()
+    rbt_r = gofa_con.GoFaArmController()
+    rrtc_s = rrtc.RRTConnect(rbt_s)
+
     # start_conf = np.array([0, 0, 0, 0, 0, 0])
     # go_init()  # 令机械臂从当前位置回到机械臂初始位置
     # print("hi")

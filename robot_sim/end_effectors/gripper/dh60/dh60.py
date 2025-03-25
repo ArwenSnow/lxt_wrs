@@ -6,6 +6,7 @@ import modeling.collision_model as cm
 from panda3d.core import CollisionNode, CollisionBox, Point3
 import robot_sim._kinematics.jlchain as jl
 import basis.robot_math as rm
+from typing import Literal
 import robot_sim.end_effectors.gripper.gripper_interface as gp
 
 
@@ -13,7 +14,7 @@ class Dh60(gp.GripperInterface):
 
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), coupling_offset_pos=np.zeros(3),
                  coupling_offset_rotmat=np.eye(3), cdmesh_type='convex_hull', name='Dh60',
-                 enable_cc=True):
+                 fingertip_type: Literal['s_60', 'l_60'] = 's_60', enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, cdmesh_type=cdmesh_type, name=name)
         this_dir, this_filename = os.path.split(__file__)
         self.coupling.jnts[1]['loc_pos'] = coupling_offset_pos
@@ -26,7 +27,7 @@ class Dh60(gp.GripperInterface):
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
 
         # fingertip
-        self.fingertip_type = 's_60'
+        self.fingertip_type = fingertip_type
         if self.fingertip_type == 's_60':  # 切换成dh60原装手指，方接触面，60行程。
             self.fingertip_1 = os.path.join(this_dir, "meshes", "short_fingertip_60_1.stl")
             self.fingertip_2 = os.path.join(this_dir, "meshes", "short_fingertip_60_2.stl")
@@ -266,7 +267,7 @@ if __name__ == '__main__':
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
     # cm.CollisionModel("meshes/dual_realsense.stl", expand_radius=.001).attach_to(base)
-    grpr = Dh60(enable_cc=True)
+    grpr = Dh60(enable_cc=True, )
     # grpr.show_cdprimit()
     # grpr.open()
     grpr.gen_meshmodel().attach_to(base)

@@ -176,7 +176,7 @@ if __name__ == '__main__':
     #     grpr.gen_meshmodel().attach_to(base)
     grpr = RobotiqHE(coupling_offset_pos=np.array([0, 0, 0.0331]),
                      coupling_offset_rotmat=rm.rotmat_from_axangle([1, 0, 0], math.pi / 6), enable_cc=True)
-    grpr.jaw_to(.05)
+    grpr.jaw_to(.0)
     grpr.gen_meshmodel().attach_to(base)
     # grpr.gen_stickmodel(togglejntscs=False).attach_to(base)
     grpr.fix_to(pos=np.array([0, .3, .2]), rotmat=rm.rotmat_from_axangle([1, 0, 0], .05))
