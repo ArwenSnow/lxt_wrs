@@ -6,8 +6,8 @@ import robot_sim._kinematics.jlchain as jl
 import robot_sim.manipulators.manipulator_interface as mi
 import modeling.collision_model as cm
 
-class GOFA5(mi.ManipulatorInterface):
 
+class GOFA5(mi.ManipulatorInterface):
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), homeconf=np.zeros(6), name='ur5e', enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, name=name)
         this_dir, this_filename = os.path.split(__file__)
@@ -84,7 +84,6 @@ class GOFA5(mi.ManipulatorInterface):
         self.jlc.lnks[6]['rgba'] = [.7, .7, .7, 1]
         self.jlc.reinitialize()
 
-
         # collision checker
         if enable_cc:
             super().enable_cc()
@@ -125,6 +124,6 @@ if __name__ == '__main__':
     manipulator_instance = GOFA5(enable_cc=True)
     manipulator_meshmodel = manipulator_instance.gen_meshmodel()
     manipulator_meshmodel.attach_to(base)
-    manipulator_meshmodel.show_cdprimit()
+    # manipulator_meshmodel.show_cdprimit()
     manipulator_instance.gen_stickmodel(toggle_jntscs=True).attach_to(base)
     base.run()

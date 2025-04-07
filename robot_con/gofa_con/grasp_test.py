@@ -95,7 +95,7 @@ def load_single_grasp(pair_type, pair_id, rot_id, jaw_width_ratio):
 
 
 if __name__ == '__main__':
-    # rbt_r = gofa_con.GoFaArmController(toggle_debug=False)
+    rbt_r = gofa_con.GoFaArmController(toggle_debug=False)
     # dh76_con = dh_r.MainGripper(port="com4")
     # dh76_con.init_gripper()
     base = wd.World(cam_pos=[4.16951, 1.8771, 1.70872], lookat_pos=[0, 0, 0.5])
@@ -120,20 +120,20 @@ if __name__ == '__main__':
     rbt_s.gen_meshmodel().attach_to(base)
 
     # a = gripper_s.gen_meshmodel()
-    a_homo = rm.homomat_from_posrot((0.6, 0, -0.014+0.038))
+    a_homo = rm.homomat_from_posrot((0.6, 0, -0.014+0.038))   # 将pos和rot转换为4×4齐次变换矩阵，rot默认I
     target_conf_list = []
     approach_conf_list = []
     for grasp_info in grasp_info_list:
         grasp_homo = rm.homomat_from_posrot(grasp_info[1], grasp_info[2])
-        b = a_homo.dot(grasp_homo)
+        b = a_homo.dot(grasp_homo)                            # 计算得到gl_jaw_center_pos和gl_jaw_center_rotmat组成的齐次矩阵
 
         # wrist_homo = rm.homomat_from_posrot(grasp_info[3], grasp_info[4])
         # c = a_homo.dot(wrist_homo)
-        gripper_s.grip_at_with_jcpose(b[:3,3], b[:3,:3], grasp_info[0])
+        gripper_s.grip_at_with_jcpose(b[:3, 3], b[:3, :3], grasp_info[0])  # 夹爪移动到目标位姿，并张开到指定宽度
         # gripper_s.gen_meshmodel().attach_to(base)
         try:
             # gm.gen_sphere(c[:3,3]).attach_to(base)
-            target_conf = rbt_s.ik(component_name= "arm",
+            target_conf = rbt_s.ik(component_name= "arm",      # 机械臂求ik
                        tgt_pos=b[:3, 3],
                        tgt_rotmat=b[:3,:3],
                        seed_jnt_values=rbt_s.get_jnt_values('arm'),
@@ -143,18 +143,18 @@ if __name__ == '__main__':
                        tcp_loc_rotmat=None,
                        local_minima="end",
                        toggle_debug=False)
-            rbt_s.fk('arm', target_conf)
-            if rbt_s.is_collided():
+            rbt_s.fk('arm', target_conf)       # 机械臂执行fk到达目标位姿
+            if rbt_s.is_collided():                           # 若碰撞，丢弃
                 pass
             else:
-                target_conf_list.append(target_conf)
+                target_conf_list.append(target_conf)          # 若不碰撞，则将这个target_conf加入target_conf_list
                 # rbt_s.gen_meshmodel(rgba=[0,1,0,0.3]).attach_to(base)
-                pos, rot = rbt_s.get_gl_tcp("arm")
-                pos_a = pos + [0,0,0.2]
+                pos, rot = rbt_s.get_gl_tcp("arm")            # 获取机械臂工具中心点jaw_center的全局位姿
+                pos_a = pos + [0, 0, 0.2]                     # 抬高20cm的位置，用于接近目标
                 try:
-                    approach_conf = rbt_s.ik('arm', pos_a, rot,seed_jnt_values=target_conf)
-                    approach_conf_list.append([approach_conf, target_conf])
-                    rbt_s.fk('arm', approach_conf)
+                    approach_conf = rbt_s.ik('arm', pos_a, rot,seed_jnt_values=target_conf)  # 计算接近目标的机械臂关节角度
+                    approach_conf_list.append([approach_conf, target_conf])     # 将接近目标信息和目标信息一起存储
+                    rbt_s.fk('arm', approach_conf)               # 机械臂执行fk到达接近目标位姿
                     # rbt_s.gen_meshmodel(rgba=[0,0,1,1]).attach_to(base)
                 except:
                     pass
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     rrtc_s = rrtc.RRTConnect(rbt_s)
 
     for approach_conf in approach_conf_list:
-        path_app = rrtc_s.plan('arm',
+        path_app = rrtc_s.plan('arm',     # 第一步：规划从起始位姿到接近位姿的路径
                  init_jnts,
                  approach_conf[0],
                  obstacle_list=[obj],
@@ -178,7 +178,7 @@ if __name__ == '__main__':
                  smoothing_iterations=50,
                  animation=False)
         if path_app is not None :
-            path_gri = rrtc_s.plan('arm',
+            path_gri = rrtc_s.plan('arm',  # 若第一步可行，再第二步：规划从接近位姿到最终抓取位姿
                                approach_conf[0],
                                approach_conf[1],
                                obstacle_list=[obj],
@@ -202,16 +202,15 @@ if __name__ == '__main__':
                     rbt_s.fk('arm', item)
                     rbt_s.gen_meshmodel(rgba=[0,1,0,0.5]).attach_to(base)
 
-
-                # rbt_r.move_jntspace_path(path_app)
-                # rbt_r.move_jntspace_path(path_gri)
-                # dh76_con.jaw_to(0)
-                # time.sleep(2)
-                # rbt_r.move_jntspace_path(path_gri[::-1])
-                # rbt_r.move_jntspace_path(path_gri)
-                # dh76_con.jaw_to(0.06)
-                # rbt_r.move_jntspace_path(path_gri[::-1])
-                # rbt_r.move_jntspace_path(path_app[::-1])
+                rbt_r.move_jntspace_path(path_app)            # 机械臂从初始位姿到达接近位姿
+                rbt_r.move_jntspace_path(path_gri)            # 机械臂从接近位姿到达目标位姿
+                # dh76_con.jaw_to(0)                            # 夹爪抓住目标
+                time.sleep(2)
+                rbt_r.move_jntspace_path(path_gri[::-1])      # 机械臂沿path_gri反向运动回到接近点
+                rbt_r.move_jntspace_path(path_gri)            # 机械臂再次运动到目标位姿
+                # dh76_con.jaw_to(0.06)                         # 夹爪张开，把目标放回原处
+                rbt_r.move_jntspace_path(path_gri[::-1])      # 机械臂沿path_gri反向运动回到接近点
+                rbt_r.move_jntspace_path(path_app[::-1])      # 机械臂沿path_app反向运动回到初始点
                 break
     # rbt_r = gofa_con.GoFaArm()
 

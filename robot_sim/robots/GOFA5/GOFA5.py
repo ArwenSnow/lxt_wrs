@@ -7,8 +7,9 @@ import robot_sim._kinematics.jlchain as jl
 import robot_sim.manipulators.gofa5.gofa5 as rbt
 # import robot_sim.end_effectors.gripper.robotiq140.robotiq140 as hnd
 # import robot_sim.end_effectors.gripper.ag145.ag145 as hnd
-import robot_sim.end_effectors.gripper.dh76.dh76 as hnd
-# import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as hnd
+# import robot_sim.end_effectors.gripper.dh60.dh60 as hnd
+# import robot_sim.end_effectors.gripper.dh76.dh76 as hnd
+import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as hnd
 import robot_sim.robots.robot_interface as ri
 from panda3d.core import CollisionNode, CollisionBox, Point3
 import copy
@@ -20,7 +21,6 @@ class GOFA5(ri.RobotInterface):
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), name="gofa5", enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, name=name)
         this_dir, this_filename = os.path.split(__file__)
-
         # base plate
         self.base_stand = jl.JLChain(pos=pos,
                                      rotmat=rotmat,
@@ -29,8 +29,9 @@ class GOFA5(ri.RobotInterface):
 
         self.base_stand.lnks[0]['collision_model'] = cm.CollisionModel(
             os.path.join(this_dir, "meshes", "wholetable.STL"),
-            cdprimit_type="box", expand_radius=.005,
+            cdprimit_type="box", expand_radius=.00,
             userdefined_cdprimitive_fn=self._base_combined_cdnp)
+
         self.base_stand.lnks[0]['rgba'] = [.35, .35, .35, 1]
         self.base_stand.reinitialize()
         self.base_stand2 = jl.JLChain(pos=pos,
@@ -44,7 +45,6 @@ class GOFA5(ri.RobotInterface):
             userdefined_cdprimitive_fn=self._base_combined_cdnp)
         self.base_stand2.lnks[0]['rgba'] = [.35, .35, .35, 1]
         self.base_stand2.reinitialize()
-
 
         self.camera1 = jl.JLChain(pos=pos,
                                      rotmat=rotmat,
@@ -89,7 +89,7 @@ class GOFA5(ri.RobotInterface):
                             homeconf=arm_homeconf,
                             name='arm', enable_cc=False)
         # gripper
-        self.hnd = hnd.Dh76(pos=self.arm.jnts[-1]['gl_posq'],
+        self.hnd = hnd.reconfgripper(pos=self.arm.jnts[-1]['gl_posq'],
                             rotmat=self.arm.jnts[-1]['gl_rotmatq'],
                             name='hnd', enable_cc=False)
 
@@ -386,7 +386,7 @@ if __name__ == '__main__':
 
     gm.gen_frame().attach_to(base)
     robot_s = GOFA5(enable_cc=True)
-    robot_s.hnd.jaw_to(.06)
+    # robot_s.hnd.jaw_to(.06)
     robot_s.gen_meshmodel(toggle_tcpcs=True, toggle_jntscs=False).attach_to(base)
     # robot_s.hnd.jaw_to(.14)
     robot_s.gen_meshmodel(toggle_tcpcs=True, toggle_jntscs=False).attach_to(base)

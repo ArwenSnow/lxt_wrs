@@ -1,0 +1,19 @@
+ICP 配准结果 - 2025-03-24 22:49:27
+点云采样数: 33033
+初始变换矩阵:
+[[1. 0. 0. 0.]
+ [0. 1. 0. 0.]
+ [0. 0. 1. 0.]
+ [0. 0. 0. 1.]]
+--------------------------------------------------
+源点云文件: E:\ABB-Project\ABB_wrs\suyixuan\ABB\Pose_Estimation\Task4_Simulated_Viewpoint_icosphere\target_normalized.ply
+STL 文件目录: E:\ABB-Project\ABB_wrs\suyixuan\ABB\Pose_Estimation\Task4_Simulated_Viewpoint_icosphere\datavisible_faces_0.stl
+STL点云的点数: 33033
+Fitness: 0.010958738231465504
+RMSE: 0.6763990798305296
+Transformation Matrix:
+[[ 0.99962159 -0.01417898 -0.02357197 -1.12050949]
+ [ 0.01399507  0.99987047 -0.00794872 -0.28960218]
+ [ 0.02368163  0.00761582  0.99969054  0.82415459]
+ [ 0.          0.          0.          1.        ]]
+--------------------------------------------------

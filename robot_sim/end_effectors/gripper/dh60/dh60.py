@@ -11,7 +11,6 @@ import robot_sim.end_effectors.gripper.gripper_interface as gp
 
 
 class Dh60(gp.GripperInterface):
-
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), coupling_offset_pos=np.zeros(3),
                  coupling_offset_rotmat=np.eye(3), cdmesh_type='convex_hull', name='Dh60',
                  fingertip_type: Literal['s_60', 'l_60'] = 's_60', enable_cc=True):
@@ -47,7 +46,9 @@ class Dh60(gp.GripperInterface):
         self.lft.jnts[1]['motion_rng'] = [0, .03]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[1]['name'] = "finger1"
-        self.lft.lnks[1]['mesh_file'] = self.fingertip_1
+        self.lft.lnks[1]['mesh_file'] = cm.CollisionModel(
+            self.fingertip_1, cdprimit_type="user_defined",
+            userdefined_cdprimitive_fn=self._lftfinger_cdnp, expand_radius=.000)
         self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
         self.lft.jnts[2]['loc_pos'] = np.array([.0294, .01635, -.007])
         self.lft.jnts[2]['loc_rotmat'] = np.array([0, 0, 0])
@@ -59,7 +60,9 @@ class Dh60(gp.GripperInterface):
         self.rgt.jnts[1]['type'] = 'prismatic'
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
         self.rgt.lnks[1]['name'] = "finger2"
-        self.rgt.lnks[1]['mesh_file'] = self.fingertip_2
+        self.rgt.lnks[1]['mesh_file'] = cm.CollisionModel(
+            self.fingertip_2, cdprimit_type="user_defined",
+            userdefined_cdprimitive_fn=self._rgtfinger_cdnp, expand_radius=.000)
         self.rgt.lnks[1]['rgba'] = [.5, .5, .5, 1]
         self.rgt.jnts[2]['loc_pos'] = np.array([-.0294, -.01635, -.007])
         self.rgt.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, math.pi)
@@ -76,60 +79,38 @@ class Dh60(gp.GripperInterface):
         # jaw width
         self.jawwidth_rng = [0.0, .06]
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, .18]) + coupling_offset_pos
+        self.jaw_center_pos = np.array([0, 0, .1655]) + coupling_offset_pos
         # collision detection
         self.all_cdelements = []
         # self.enable_cc(toggle_cdprimit=enable_cc)
 
-
-
-
     @staticmethod
-    def _finger_cdnp(name, radius):
+    def _lftfinger_cdnp(name, radius):
         collision_node = CollisionNode(name)
-        collision_primitive_c0 = CollisionBox(Point3(-.0035, 0.004, .025 + .003),
-                                              x=.0035 + radius, y=0.0032 + radius, z=.025 + .003 + radius)
+        collision_primitive_c0 = CollisionBox(Point3(0.0025, .01635, .0155),
+                                              x=.01 + radius, y=0.012 + radius, z=.023 + radius)
         collision_node.addSolid(collision_primitive_c0)
-        collision_primitive_c1 = CollisionBox(Point3(.008, 0.028 - .002, -.011),
-                                              x=.018 + radius, y=0.008 + radius, z=.011 + radius)
-        collision_node.addSolid(collision_primitive_c1)
-        collision_primitive_c2 = CollisionBox(Point3(-.005, 0.012 - .002, -.002 + .0025),
-                                              x=.005 + radius, y=0.008 + radius, z=.002 + .0025 + radius)
-        collision_node.addSolid(collision_primitive_c2)
         return collision_node
 
     @staticmethod
-    def _hnd_base_cdnp(name, radius):
+    def _rgtfinger_cdnp(name, radius):
         collision_node = CollisionNode(name)
-        collision_primitive_c0 = CollisionBox(Point3(0, 0, .031),
-                                              x=.036 + radius, y=0.038 + radius, z=.031 + radius)
-        collision_node.addSolid(collision_primitive_c0)  # 0.62
-        collision_primitive_c1 = CollisionBox(Point3(0, 0, .067),
-                                              x=.036 + radius, y=0.027 + radius, z=.003 + radius)
-        collision_node.addSolid(collision_primitive_c1)  # 0.06700000
-        #
-        collision_primitive_c2 = CollisionBox(Point3(.006, .049, .0485),
-                                              x=.02 + radius, y=.02 + radius, z=.015 + radius)
-        collision_node.addSolid(collision_primitive_c2)
-        collision_primitive_c3 = CollisionBox(Point3(0, 0, .08),
-                                              x=.013 + radius, y=0.013 + radius, z=.005 + radius)
-        collision_node.addSolid(collision_primitive_c3)
-
+        collision_primitive_c0 = CollisionBox(Point3(-0.0025, -.01635, .0155),
+                                              x=.01 + radius, y=0.012 + radius, z=.023 + radius)
+        collision_node.addSolid(collision_primitive_c0)
         return collision_node
 
     def enable_cc(self, toggle_cdprimit):
         if toggle_cdprimit:
             super().enable_cc()
             # cdprimit
-            self.cc.add_cdlnks(self.lft, [0])
+            self.cc.add_cdlnks(self.lft, [0, 1])
             self.cc.add_cdlnks(self.rgt, [1])
             activelist = [self.lft.lnks[0],
+                          self.lft.lnks[1],
                           self.rgt.lnks[1]]
             self.cc.set_active_cdlnks(activelist)
             self.all_cdelements = self.cc.all_cdelements
-        else:
-            self.all_cdelements = [self.lft.lnks[0],
-                                   self.rgt.lnks[1]]
         # cdmesh
         for cdelement in self.all_cdelements:
             cdmesh = cdelement['collision_model'].copy()
@@ -244,7 +225,6 @@ class Dh60(gp.GripperInterface):
             gm.gen_mycframe(pos=jaw_center_gl_pos, rotmat=jaw_center_gl_rotmat).attach_to(meshmodel)
         return meshmodel
 
-
     def open(self):
         '''
         gripper open
@@ -258,17 +238,15 @@ class Dh60(gp.GripperInterface):
         self.jaw_to(0)
 
 
-
 if __name__ == '__main__':
     import visualization.panda.world as wd
     import modeling.geometric_model as gm
 
-
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
     # cm.CollisionModel("meshes/dual_realsense.stl", expand_radius=.001).attach_to(base)
-    grpr = Dh60(enable_cc=True, )
-    # grpr.show_cdprimit()
-    # grpr.open()
+    grpr = Dh60(enable_cc=True)
+    grpr.open()
+    grpr.show_cdprimit()
     grpr.gen_meshmodel().attach_to(base)
     base.run()

@@ -98,7 +98,6 @@ class Dh76(gp.GripperInterface):
         collision_node.addSolid(collision_primitive_c0)
         return collision_node
 
-
     def enable_cc(self, toggle_cdprimit):
         if toggle_cdprimit:
             super().enable_cc()
@@ -238,11 +237,9 @@ class Dh76(gp.GripperInterface):
         self.jaw_to(0)
 
 
-
 if __name__ == '__main__':
     import visualization.panda.world as wd
     import modeling.geometric_model as gm
-
 
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
@@ -251,4 +248,5 @@ if __name__ == '__main__':
     grpr.open()
     grpr.show_cdprimit()
     grpr.gen_meshmodel().attach_to(base)
+
     base.run()

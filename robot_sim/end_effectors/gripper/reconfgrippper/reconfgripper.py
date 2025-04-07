@@ -301,6 +301,7 @@ if __name__ == '__main__':
     grpr.rg_close()
     m_jawwidth = grpr.get_jawwidth(g='m')
     m_rotmat = grpr.rotmat
+    grpr.show_cdprimit()
     grpr.gen_meshmodel().attach_to(base)
     base.run()
 
