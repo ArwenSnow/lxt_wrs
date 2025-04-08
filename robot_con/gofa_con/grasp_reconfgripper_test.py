@@ -64,6 +64,7 @@ if __name__ == '__main__':
     i = 0
 
     lftjcenter = []
+    aa = []
     # 抓finger_1,gofa5先是悬停在离夹爪20cm高的地方，再抓住finger_1，抬起原路返回到20cm高处
     for grasp_info in grasp_info_list:
         jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
@@ -103,6 +104,7 @@ if __name__ == '__main__':
                     approach_conf_1_list.append([approach_conf, target_conf])     # 将接近目标信息和目标信息一起存储
                     rbt_s.fk('arm', approach_conf)                 # 机械臂执行fk到达接近目标位姿
                     lftjcenter.append((jaw_center_pos_in_m, jaw_center_rotmat_in_m))
+                    aa.append((jaw_center_pos, jaw_center_rotmat))
                 except:
                     pass
         except:
@@ -149,6 +151,7 @@ if __name__ == '__main__':
                 break
 
     rgtjcenter = []
+    bb = []
     # 抓finger_2,接上一步，gofa5从finger_1抬高20cm的地方，来到离finger_2抬高20cm的地方，再抓住finger_2
     for grasp_info in grasp_info_list:
         jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = grasp_info
@@ -188,6 +191,7 @@ if __name__ == '__main__':
                     approach_conf_2_list.append([approach_conf, target_conf])     # 将接近目标信息和目标信息一起存储
                     rbt_s.fk('arm', approach_conf)               # 机械臂执行fk到达接近目标位姿
                     rgtjcenter.append((jaw_center_pos_in_m, jaw_center_rotmat_in_m))
+                    bb.append((jaw_center_pos, jaw_center_rotmat))
                 except:
                     pass
         except:
@@ -310,11 +314,9 @@ if __name__ == '__main__':
 
     # 第一个手指的运动轨迹
     lpos, lrotmat = lftjcenter[lftcount]
-    R_x90 = np.array([
-        [1, 0, 0],
-        [0, 0, 1],
-        [0, -1, 0]
-    ])
+    aajaw_center_pos, aajaw_center_rotmat = aa[rgtcount]
+    print(lpos)
+    print(aajaw_center_pos)
     objpose_list_1 = []
     objpose_list_1 += [finger_1_homo for _ in range(len(path_app_finger_1))]
     objpose_list_1 += [finger_1_homo for _ in range(len(path_gri_finger_1))]
@@ -324,7 +326,7 @@ if __name__ == '__main__':
         rbt_s.fk("arm", jaw_pose)
         pos, rotmat = rbt_s.get_gl_tcp('arm')
 
-        f_rotmat = finger_1_rotmat.dot(lrotmat)
+        f_rotmat = rotmat.dot(aajaw_center_rotmat.T)
         f_pos = pos + np.dot(rotmat, lpos)
         ee_pose = rm.homomat_from_posrot(f_pos, f_rotmat)
         objpose_list_1.append(ee_pose)
@@ -334,10 +336,9 @@ if __name__ == '__main__':
         rbt_s.fk("arm", jaw_pose)
         pos, rotmat = rbt_s.get_gl_tcp('arm')
 
-        f_rotmat = finger_1_rotmat.dot(lrotmat)
+        f_rotmat = rotmat.dot(aajaw_center_rotmat.T)
         f_pos = pos + np.dot(rotmat, lpos)
-        ee_pose = rm.homomat_from_posrot(f_pos, rotmat.dot(R_x90))
-        aa = rotmat.dot(R_x90)
+        ee_pose = rm.homomat_from_posrot(f_pos, f_rotmat)
         objpose_list_1.append(ee_pose)
 
     for i in range(len(path_gri_finger_2)):
@@ -345,9 +346,9 @@ if __name__ == '__main__':
         rbt_s.fk("arm", jaw_pose)
         pos, rotmat = rbt_s.get_gl_tcp('arm')
 
-        f_rotmat = finger_1_rotmat.dot(lrotmat)
+        f_rotmat = rotmat.dot(aajaw_center_rotmat.T)
         f_pos = pos + np.dot(rotmat, lpos)
-        ee_pose = rm.homomat_from_posrot(f_pos, aa)
+        ee_pose = rm.homomat_from_posrot(f_pos, f_rotmat)
         objpose_list_1.append(ee_pose)
 
     for i in range(len(path_gri_finger_2)):
@@ -355,13 +356,14 @@ if __name__ == '__main__':
         rbt_s.fk("arm", jaw_pose)
         pos, rotmat = rbt_s.get_gl_tcp('arm')
 
-        f_rotmat = finger_1_rotmat.dot(lrotmat)
+        f_rotmat = rotmat.dot(aajaw_center_rotmat.T)
         f_pos = pos + np.dot(rotmat, lpos)
-        ee_pose = rm.homomat_from_posrot(f_pos, aa)
+        ee_pose = rm.homomat_from_posrot(f_pos, f_rotmat)
         objpose_list_1.append(ee_pose)
 
     # 第二个手指的运动轨迹
     rpos, rrotmat = rgtjcenter[rgtcount]
+    bbjaw_center_pos, bbjaw_center_rotmat = bb[rgtcount]
 
     objpose_list_2 = []
     objpose_list_2 += [finger_2_homo for _ in range(len(path_app_finger_1))]
@@ -375,7 +377,7 @@ if __name__ == '__main__':
         rbt_s.fk("arm", jaw_pose)
         pos, rotmat = rbt_s.get_gl_tcp('arm')
 
-        f_rotmat = finger_2_rotmat.dot(rrotmat)
+        f_rotmat = rotmat.dot(bbjaw_center_rotmat.T)
         f_pos = pos + np.dot(rotmat, rpos)
         ee_pose = rm.homomat_from_posrot(f_pos, f_rotmat)
         objpose_list_2.append(ee_pose)
@@ -399,6 +401,4 @@ if __name__ == '__main__':
                           appendTask=True)
     time.sleep(2)
 
-    print(f"计数器={rgtcount}")
-    print(rgtjcenter[rgtcount])
     base.run()
