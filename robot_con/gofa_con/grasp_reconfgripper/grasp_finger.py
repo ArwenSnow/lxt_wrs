@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     # set finger_1 pose
     finger_1 = cm.CollisionModel(obj_path, expand_radius=-0.001)
-    finger_1_pos = np.array([0.6, 0, 0.015])
+    finger_1_pos = np.array([0.6, 0, 0.025])
     finger_1.set_pos(finger_1_pos)
     R_x = np.array([[1, 0, 0],
                     [0, np.cos(np.radians(90)), -np.sin(np.radians(90))],
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # set finger_2 pose
     finger_2 = cm.CollisionModel(obj_path, expand_radius=0.00)
-    finger_2_pos = np.array([0.7, .2, 0.015])
+    finger_2_pos = np.array([0.8, .2, 0.015])
     finger_2.set_pos(finger_2_pos)
     R_x = np.array([[1, 0, 0],
                     [0, np.cos(np.radians(270)), -np.sin(np.radians(270))],
@@ -54,11 +54,17 @@ if __name__ == '__main__':
     target_conf_1_list = []
     approach_conf_1_list = []
     lftjcenter = []
+    li = 0
+    lli = []
+    lfor_grasp_object = []
 
     finger_2_homo = rm.homomat_from_posrot(finger_2_pos, finger_2_rotmat)
     target_conf_2_list = []
     approach_conf_2_list = []
     rgtjcenter = []
+    ri = 0
+    rri = []
+    rfor_grasp_object = []
 
     # 抓finger_1,gofa5先是悬停在离夹爪20cm高的地方，再抓住finger_1，抬起原路返回到20cm高处
     for grasp_info in grasp_info_list:
@@ -75,8 +81,8 @@ if __name__ == '__main__':
         gripper_s.mg_jaw_to(mg_jawwidth)
 
         l_rotmat = jaw_center_rotmat.T
-        laaa_m_pos = jaw_center_pos + jaw_center_rotmat.dot(value)
-        l_pos = np.dot(jaw_center_rotmat.T, (-laaa_m_pos))
+        laaa_m_pos = jaw_center_pos + jaw_center_rotmat.dot(value)  # 手指pos为0时，求大夹爪根部全局pos
+        l_pos = np.dot(jaw_center_rotmat.T, (0-laaa_m_pos))
         try:
             target_conf = rbt_s.ik(component_name="arm",      # 机械臂求ik
                                    tgt_pos=m_pos,
@@ -100,6 +106,9 @@ if __name__ == '__main__':
                     approach_conf_1_list.append([approach_conf, target_conf])     # 将接近目标信息和目标信息一起存储
                     rbt_s.fk('arm', approach_conf)                 # 机械臂执行fk到达接近目标位姿
                     lftjcenter.append((l_pos, l_rotmat))       # 存储下手指和大夹爪的相对信息，方便生成手指的动画
+                    li += 1
+                    lli.append((jaw_center_pos, jaw_center_rotmat))
+                    lfor_grasp_object.append((jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat))
                 except:
                     pass
         except:
@@ -186,6 +195,9 @@ if __name__ == '__main__':
                     approach_conf_2_list.append([approach_conf, target_conf])     # 将接近目标信息和目标信息一起存储
                     rbt_s.fk('arm', approach_conf)               # 机械臂执行fk到达接近目标位姿
                     rgtjcenter.append((r_pos, r_rotmat))
+                    ri += 1
+                    rri.append((jaw_center_pos, jaw_center_rotmat))
+                    rfor_grasp_object.append((jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat))
                 except:
                     pass
         except:
@@ -336,6 +348,12 @@ if __name__ == '__main__':
     robot_attached_list = []
     object_attached_list = []
     counter = [0]
+    for_grasp_object = []
+    for_grasp_object.append(lftcount)
+    for_grasp_object.append(rgtcount)
+    gpa.write_pickle_file('lfor_grasp_object', lfor_grasp_object, './path_list/grasp_finger_info/', 'lfor_grasp_object.pickle')
+    gpa.write_pickle_file('rfor_grasp_object', rfor_grasp_object, './path_list/grasp_finger_info/', 'rfor_grasp_object.pickle')
+    gpa.write_pickle_file('counter', for_grasp_object, './path_list/grasp_finger_info/', 'counter.pickle')
 
     taskMgr.doMethodLater(0.1, genani.update, "update",
                           extraArgs=[rbt_s,
@@ -352,6 +370,15 @@ if __name__ == '__main__':
                                      counter],
                           appendTask=True)
     time.sleep(2)
+
+    print(f"li = {li}")
+    print(f"ri = {ri}")
+    i = 0
+    for lpos, lrotmat in lli:
+        for rpos, rrotmat in rri:
+            if np.allclose(lpos, rpos, atol=1e-5) and np.allclose(lrotmat, rrotmat, atol=1e-5):
+                i += 1
+    print(f"i = {i}")
 
     base.run()
 

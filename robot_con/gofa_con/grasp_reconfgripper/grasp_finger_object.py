@@ -11,10 +11,12 @@ import robot_sim.robots.gofa5.gofa5 as gf5
 import motion.probabilistic.rrt_connect as rrtc
 import basis.robot_math as rm
 import robot_con.gofa_con.grasp_reconfgripper.animation as genani
+import robot_con.gofa_con.grasp_reconfgripper.grasp_finger as grafin
 
 if __name__ == '__main__':
     base = wd.World(cam_pos=[4.16951, 1.8771, 1.70872], lookat_pos=[0, 0, 0.5])
 
+    # robot
     rbt_s = gf5.GOFA5()
 
     # finger_1
