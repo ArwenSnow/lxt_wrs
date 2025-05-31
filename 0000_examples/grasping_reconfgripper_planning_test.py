@@ -15,7 +15,7 @@ gm.gen_frame().attach_to(base)
 finger_type = 'a'
 
 # hnd_type
-g = 'r'
+g = 'l'
 
 # finger_s
 if finger_type == 'a':

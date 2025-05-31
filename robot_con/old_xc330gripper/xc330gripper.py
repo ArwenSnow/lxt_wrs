@@ -1,6 +1,7 @@
 from time import sleep
 import drivers.devices.dynamixel_sdk.sdk_wrapper as dxl
 
+
 class xc330gripper(object):
     def __init__(self, gripper, com, peripheral_baud, real=True):
         self.gripper = gripper
@@ -9,11 +10,10 @@ class xc330gripper(object):
         self.peripheral_baud = peripheral_baud
         self.init_real_gripper()
 
-
     def init_real_gripper(self):
         if self.real:
             self.gripper_r = dxl.DynamixelMotor(self.com, baud_rate=self.peripheral_baud,
-                                              toggle_group_sync_write=True)
+                                                toggle_group_sync_write=True)
             id_list = [0, 1]
             control_mode = 16
             for i in id_list:
@@ -23,7 +23,6 @@ class xc330gripper(object):
                 self.gripper_r.set_dxl_pro_vel(10, i)
         else:
             print("please set real gripper on")
-
 
 
     def lg_set_force(self):

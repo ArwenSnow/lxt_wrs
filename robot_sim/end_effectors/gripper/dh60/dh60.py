@@ -43,7 +43,7 @@ class Dh60(gp.GripperInterface):
 
         self.lft.jnts[1]['loc_pos'] = np.array([.0062, -.01635, .14])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [0, .03]
+        self.lft.jnts[1]['motion_rng'] = [0, 300]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[1]['name'] = "finger1"
         self.lft.lnks[1]['mesh_file'] = cm.CollisionModel(
@@ -77,7 +77,7 @@ class Dh60(gp.GripperInterface):
         self.enable_cc(toggle_cdprimit=enable_cc)
 
         # jaw width
-        self.jawwidth_rng = [0.0, .06]
+        self.jawwidth_rng = [0.0, 600]
         # jaw center
         self.jaw_center_pos = np.array([0, 0, .1655]) + coupling_offset_pos
         # collision detection

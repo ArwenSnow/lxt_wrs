@@ -1,0 +1,126 @@
+import copy
+import math
+from time import sleep
+import numpy as np
+import basis.robot_math as rm
+import visualization.panda.world as wd
+import modeling.geometric_model as gm
+import modeling.collision_model as cm
+import grasping.planning.antipodal as gpa
+
+import robot_sim.robots.gofa5.gofa5 as gf5
+import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as reconf
+import robot_sim.end_effectors.gripper.xc330gripper1.xc330gripper1 as xcgf
+import motion.probabilistic.rrt_connect as rrtc
+
+import robot_con.gofa_con.gofa_con as gofa_con
+import robot_con.reconfgripper.maingripper.maingripper as dh
+import robot_con.reconfgripper.xc330gripper.xc330gripper as xc
+
+
+def go_init():
+    init_jnts = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    current_jnts = rbt_s.get_jnt_values("arm")
+
+    path = rrtc_s.plan(component_name="arm",
+                       start_conf=current_jnts,
+                       goal_conf=init_jnts,
+                       ext_dist=0.05,
+                       max_time=300)
+    rbt_r.move_jntspace_path(path)
+
+
+if __name__ == '__main__':
+    base = wd.World(cam_pos=[4.16951, 1.8771, 1.70872], lookat_pos=[0, 0, 0.5])
+    gm.gen_frame().attach_to(base)
+    rbt_s = gf5.GOFA5()
+    dh_s = reconf.reconfgripper()
+    xc_s = xcgf.xc330gripper()
+    rrtc_s = rrtc.RRTConnect(rbt_s)
+
+    rbt_r = gofa_con.GoFaArmController()
+    xc_r = xc.Xc330Gripper(xc_s, 'COM3', 57600, real=True)
+    dh_r = dh.MainGripper()
+    go_init()
+    print("机器人初始化完成")
+    xc_r.init_both_gripper()
+    sleep(15)
+    print("小夹爪初始化完成")
+    dh_r.init_gripper()
+    sleep(4)
+    print("大夹爪初始化完成")
+
+    # 1.start → app_finger1
+    start_jnts = np.array([0, 0, 0, 0, 0, 0])
+    app1_jnts = np.array([-0.16598081, 0.42079888, 0.28815386, -2.34450078, -0.56845374, 0.21223204])
+    path_app_1 = rrtc_s.plan(component_name="arm",
+                             start_conf=start_jnts,
+                             goal_conf=app1_jnts,
+                             ext_dist=0.05,
+                             max_time=300)
+    rbt_r.move_jntspace_path(path_app_1)
+
+    # 2.app_finger1 → gri_finger1
+    gri1_jnts = np.array([-0.13177236, 0.66566858, 0.30473449, -2.34397719, -0.41695916, -0.01989675])
+    path_gri_1 = rrtc_s.plan(component_name="arm",
+                             start_conf=app1_jnts,
+                             goal_conf=gri1_jnts,
+                             ext_dist=0.05,
+                             max_time=300)
+    rbt_r.move_jntspace_path(path_gri_1)
+    xc_r.lg_grasp_with_force(-8)
+    sleep(10)
+
+    # 3.gri_finger1 → app_finger1
+    rbt_r.move_jntspace_path(path_gri_1[::-1])
+
+    # 4.app_finger1 → app_finger2
+    app2_jnts = np.array([-0.39374628, 0.41224677, 0.26825711, -2.35549636, -0.47717302, 0.30246556])
+    path_app_2 = rrtc_s.plan(component_name="arm",
+                             start_conf=app1_jnts,
+                             goal_conf=app2_jnts,
+                             ext_dist=0.05,
+                             max_time=300)
+    rbt_r.move_jntspace_path(path_app_2)
+
+    # 5.app_finger2 → gri_finger2
+    gri2_jnts = np.array([-0.36250489, 0.6991789, 0.20943951, -2.5804693, -0.50457469, 0.44034657])
+    path_gri_2 = rrtc_s.plan(component_name="arm",
+                             start_conf=app2_jnts,
+                             goal_conf=gri2_jnts,
+                             ext_dist=0.05,
+                             max_time=300)
+    rbt_r.move_jntspace_path(path_gri_2)
+    xc_r.rg_grasp_with_force(-8)
+    sleep(10)
+
+    # 6.gri_finger2 → app_finger2
+    rbt_r.move_jntspace_path(path_gri_2[::-1])
+
+    # 7.app_finger2 → app_object
+    app3_jnts = np.array([-0.2003638, 0.47717302, 0.21502456, -2.08915911, -0.2581342, 0.2693043])
+    path_app_3 = rrtc_s.plan(component_name="arm",
+                             start_conf=app2_jnts,
+                             goal_conf=app3_jnts,
+                             ext_dist=0.05,
+                             max_time=300)
+    rbt_r.move_jntspace_path(path_app_3)
+
+    # 8.app_object → gri_object
+    gri3_jnts = np.array([-0.2008874, 0.7283259, 0.21170844, -2.07833807, -0.22410028, 0.26895524])
+    path_gri_3 = rrtc_s.plan(component_name="arm",
+                             start_conf=app3_jnts,
+                             goal_conf=gri3_jnts,
+                             ext_dist=0.05,
+                             max_time=300)
+    rbt_r.move_jntspace_path(path_gri_3)
+    dh_r.jaw_to(0.062)
+    sleep(2)
+
+    # 9.gri_object → app_object
+    rbt_r.move_jntspace_path(path_gri_3[::-1])
+
+    base.run()
+
+
+

@@ -2,6 +2,7 @@ from time import sleep
 import drivers.devices.dynamixel_sdk.sdk_wrapper as dxl
 
 
+
 class Xc330Gripper(object):
     def __init__(self, gripper, com, peripheral_baud, real=True):
         self.gripper = gripper
@@ -12,7 +13,7 @@ class Xc330Gripper(object):
 
     def init_real_gripper(self):
         if self.real:
-            self.gripper_r = dxl.DynamixelMotor(self.com, baud_rate=self.peripheral_baud)
+            self.gripper_r = dxl.DynamixelMotor(self.com, baud_rate=self.peripheral_baud, toggle_group_sync_write=True)
             id_list = [0, 1]
             control_mode = 0
             for i in id_list:
@@ -23,16 +24,27 @@ class Xc330Gripper(object):
             print("please set real gripper on")
 
     def init_lg(self):
-        current = int(40/61.3656*1000)
+        current = int(5/61.3656*1000)
         self.gripper_r.set_dxl_goal_current(current*-1, 0, bidirection=True)
-        sleep(15)
+        sleep(17)
         self.gripper_r.set_dxl_goal_current(current, 0, bidirection=True)
         sleep(2)
 
     def init_rg(self):
-        current = int(40/61.3656*1000)
+        current = int(5/61.3656*1000)
         self.gripper_r.set_dxl_goal_current(current*-1, 1, bidirection=True)
-        sleep(15)
+        sleep(17)
+        self.gripper_r.set_dxl_goal_current(current, 1, bidirection=True)
+        sleep(2)
+
+    def init_both_gripper(self):
+        current = int(5 / 61.3656 * 1000)
+        self.gripper_r.set_dxl_goal_current(current * -1, 0, bidirection=True)
+        sleep(0.05)
+        self.gripper_r.set_dxl_goal_current(current * -1, 1, bidirection=True)
+        sleep(17)
+        self.gripper_r.set_dxl_goal_current(current, 0, bidirection=True)
+        sleep(0.05)
         self.gripper_r.set_dxl_goal_current(current, 1, bidirection=True)
         sleep(2)
 

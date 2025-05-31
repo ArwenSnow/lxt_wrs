@@ -16,7 +16,6 @@ if __name__ == '__main__':
     # ghw.lg_jaw_to(.028)
     # sleep(15)
 
-
     # lg_jawwidth = 0.00
     # rg_jawwidth = 0.00
     # ghw.lg_jaw_to(lg_jawwidth)
