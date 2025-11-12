@@ -10,10 +10,11 @@ from typing import Literal
 import robot_sim.end_effectors.gripper.gripper_interface as gp
 
 
-class Dh60(gp.GripperInterface):
+class Dh50(gp.GripperInterface):
+
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), coupling_offset_pos=np.zeros(3),
-                 coupling_offset_rotmat=np.eye(3), cdmesh_type='convex_hull', name='Dh60',
-                 fingertip_type: Literal['s_60', 'l_60'] = 's_60', enable_cc=True):
+                 coupling_offset_rotmat=np.eye(3), cdmesh_type='box', name='Dh50',
+                 fingertip_type: Literal['l_76', 'r_76'] = 'l_76', enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, cdmesh_type=cdmesh_type, name=name)
         this_dir, this_filename = os.path.split(__file__)
         self.coupling.jnts[1]['loc_pos'] = coupling_offset_pos
@@ -25,15 +26,6 @@ class Dh60(gp.GripperInterface):
         cpl_end_pos = self.coupling.jnts[-1]['gl_posq']
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
 
-        # fingertip
-        self.fingertip_type = fingertip_type
-        if self.fingertip_type == 's_60':  # 切换成dh60原装手指，方接触面，60行程。
-            self.fingertip_1 = os.path.join(this_dir, "meshes", "short_fingertip_60_1.stl")
-            self.fingertip_2 = os.path.join(this_dir, "meshes", "short_fingertip_60_2.stl")
-        elif self.fingertip_type == 'l_60':  # 切换成加长版手指，方接触面，60行程。
-            self.fingertip_1 = os.path.join(this_dir, "meshes", "long_fingertip_60_1.stl")
-            self.fingertip_2 = os.path.join(this_dir, "meshes", "long_fingertip_60_2.stl")
-
         # lft
         self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
         self.lft.lnks[0]['name'] = "base"
@@ -41,64 +33,57 @@ class Dh60(gp.GripperInterface):
         self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "base.stl")
         self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
 
-        self.lft.jnts[1]['loc_pos'] = np.array([.0062, -.01635, .14])
+        self.lft.jnts[1]['loc_pos'] = np.array([.0065, -.0134, .1025])
         self.lft.jnts[1]['type'] = 'prismatic'
-        self.lft.jnts[1]['motion_rng'] = [0, .03]
+        self.lft.jnts[1]['motion_rng'] = [0, .025]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
         self.lft.lnks[1]['name'] = "finger1"
         self.lft.lnks[1]['mesh_file'] = cm.CollisionModel(
-            self.fingertip_1, cdprimit_type="user_defined",
+            os.path.join(this_dir, "meshes", "lft.stl"), cdprimit_type="user_defined",
             userdefined_cdprimitive_fn=self._lftfinger_cdnp, expand_radius=.000)
         self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
-        self.lft.jnts[2]['loc_pos'] = np.array([.0294, .01635, -.007])
-        self.lft.jnts[2]['loc_rotmat'] = np.array([0, 0, 0])
-        self.lft.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, 0)
 
         # rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
-        self.rgt.jnts[1]['loc_pos'] = np.array([-.0062, .01635, .14])
+        self.rgt.jnts[1]['loc_pos'] = np.array([-.0065, .0134, .1025])
         self.rgt.jnts[1]['type'] = 'prismatic'
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
         self.rgt.lnks[1]['name'] = "finger2"
         self.rgt.lnks[1]['mesh_file'] = cm.CollisionModel(
-            self.fingertip_2, cdprimit_type="user_defined",
+            os.path.join(this_dir, "meshes", "rgt.stl"), cdprimit_type="user_defined",
             userdefined_cdprimitive_fn=self._rgtfinger_cdnp, expand_radius=.000)
         self.rgt.lnks[1]['rgba'] = [.5, .5, .5, 1]
-        self.rgt.jnts[2]['loc_pos'] = np.array([-.0294, -.01635, -.007])
-        self.rgt.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, math.pi)
 
         # jaw center
-        self.jaw_center_pos = np.array([0, 0, .133]) + coupling_offset_pos
+        self.jaw_center_pos = np.array([0, 0, .128]) + coupling_offset_pos
+
+        # jaw width
+        self.jawwidth_rng = [.0, .05]
+
         # reinitialize
         self.lft.reinitialize()
         self.rgt.reinitialize()
+
         # collision detection
         self.all_cdelements = []
         self.enable_cc(toggle_cdprimit=enable_cc)
 
-        # jaw width
-        self.jawwidth_rng = [0.0, .06]
-        # jaw center
-        self.jaw_center_pos = np.array([0, 0, .1655]) + coupling_offset_pos
-        # collision detection
-        self.all_cdelements = []
-        # self.enable_cc(toggle_cdprimit=enable_cc)
-
     @staticmethod
     def _lftfinger_cdnp(name, radius):
         collision_node = CollisionNode(name)
-        collision_primitive_c0 = CollisionBox(Point3(0.0025, .01635, .0155),
-                                              x=.01 + radius, y=0.012 + radius, z=.023 + radius)
+        collision_primitive_c0 = CollisionBox(Point3(-.002, .0085, .0128),
+                                              x=.014 + radius, y=0.014 + radius, z=.023 + radius)
         collision_node.addSolid(collision_primitive_c0)
         return collision_node
 
     @staticmethod
     def _rgtfinger_cdnp(name, radius):
         collision_node = CollisionNode(name)
-        collision_primitive_c0 = CollisionBox(Point3(-0.0025, -.01635, .0155),
-                                              x=.01 + radius, y=0.012 + radius, z=.023 + radius)
+        collision_primitive_c0 = CollisionBox(Point3(.002, -.0085, .0128),
+                                              x=.014 + radius, y=0.014 + radius, z=.023 + radius)
         collision_node.addSolid(collision_primitive_c0)
         return collision_node
+
 
     def enable_cc(self, toggle_cdprimit):
         if toggle_cdprimit:
@@ -225,11 +210,12 @@ class Dh60(gp.GripperInterface):
             gm.gen_mycframe(pos=jaw_center_gl_pos, rotmat=jaw_center_gl_rotmat).attach_to(meshmodel)
         return meshmodel
 
+
     def open(self):
         '''
         gripper open
         '''
-        self.jaw_to(.06)
+        self.jaw_to(.05)
 
     def close(self):
         '''
@@ -245,8 +231,9 @@ if __name__ == '__main__':
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
     # cm.CollisionModel("meshes/dual_realsense.stl", expand_radius=.001).attach_to(base)
-    grpr = Dh60(enable_cc=True)
-    # grpr.open()
+    grpr = Dh50(enable_cc=True)
+    grpr.open()
     grpr.show_cdprimit()
     grpr.gen_meshmodel().attach_to(base)
+
     base.run()

@@ -255,6 +255,8 @@ class PGC(gp.GripperInterface):
             self.jawwidth_rng = [.237, .3]
         elif self.finger_type == 'c':
             self.jawwidth_rng = [.03959, .10259]
+        elif self.finger_type == 'd':
+            self.jawwidth_rng = [0, .063]
         else:
             self.jawwidth_rng = [0.0, .063]
 
@@ -311,6 +313,23 @@ class PGC(gp.GripperInterface):
                                       + np.array([-(0.053 + mg_jawwidth) / 2, 0, .1982]))
                 self.jaw_center_pos = finger_pos_gripper
                 self.jaw_center_rotmat = rotmat_world_to_gripper
+
+        elif self.finger_type == 'd':
+            if g == "l":
+                finger_pos_world = np.array([-(0.053 + mg_jawwidth) / 2, 0, .0265])
+                rotmat_world_to_gripper = jaw_center_rotmat.T
+                finger_pos_gripper = (np.dot(rotmat_world_to_gripper, (finger_pos_world - jaw_center_pos))
+                                      + np.array([(0.053 + mg_jawwidth) / 2, 0, .1982]))
+                self.jaw_center_pos = finger_pos_gripper
+                self.jaw_center_rotmat = rotmat_world_to_gripper
+            elif g == "r":
+                finger_pos_world = np.array([-(0.053 + mg_jawwidth) / 2, 0, .0265])
+                rotmat_world_to_gripper = jaw_center_rotmat.T
+                finger_pos_gripper = (np.dot(rotmat_world_to_gripper, (finger_pos_world - jaw_center_pos))
+                                      + np.array([-(0.053 + mg_jawwidth) / 2, 0, .1982]))
+                self.jaw_center_pos = finger_pos_gripper
+                self.jaw_center_rotmat = rotmat_world_to_gripper
+
         else:
             self.jaw_center_pos = np.array([0, 0, 0.1982])
 
@@ -318,7 +337,7 @@ class PGC(gp.GripperInterface):
         self.jaw_center_rotmat = a
 
     def set_finger_type(self, finger_type, jaw_center_pos, jaw_center_rotmat, g):
-        if finger_type in ['a', 'b', 'c', None]:
+        if finger_type in ['a', 'b', 'c', 'd', None]:
             self.finger_type = finger_type
             self.set_jawwidth_rng()
             if g == "l":

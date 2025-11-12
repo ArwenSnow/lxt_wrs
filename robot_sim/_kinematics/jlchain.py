@@ -125,6 +125,7 @@ class JLChain(object):
             else:
                 self.jnts[id]['gl_pos0'] = self.jnts[pjid]['gl_posq'] + np.dot(self.jnts[pjid]['gl_rotmatq'],
                                                                                self.jnts[id]['loc_pos'])
+
                 self.jnts[id]['gl_rotmat0'] = np.dot(self.jnts[pjid]['gl_rotmatq'], self.jnts[id]['loc_rotmat'])
             self.jnts[id]['gl_motionax'] = np.dot(self.jnts[id]['gl_rotmat0'], self.jnts[id]['loc_motionax'])
             if self.jnts[id]['type'] == "end" or self.jnts[id]['type'] == "fixed":
@@ -359,6 +360,20 @@ class JLChain(object):
                                 tcp_loc_rotmat=tcp_loc_rotmat,
                                 local_minima=local_minima,
                                 toggle_debug=toggle_debug)
+
+    def tracik(self,
+               urdf_path='',
+               base_link_name='',
+               tip_link_name='',
+               tgt_pos=np.zeros(3),
+               tgt_rotmat=np.eye(3),
+               seed_jnt_values=None):
+        return self._ikt.tracik(urdf_path=urdf_path,
+                                base_link_name=base_link_name,
+                                tip_link_name=tip_link_name,
+                                tgt_pos=tgt_pos,
+                                tgt_rotmat=tgt_rotmat,
+                                seed_jnt_values=seed_jnt_values)
 
     def manipulability(self,
                        tcp_jnt_id,

@@ -7,21 +7,20 @@ import robot_sim._kinematics.jlchain as jl
 import robot_sim.manipulators.gofa5.gofa5 as rbt
 # import robot_sim.end_effectors.gripper.robotiq140.robotiq140 as hnd
 # import robot_sim.end_effectors.gripper.ag145.ag145 as hnd
-# import robot_sim.end_effectors.gripper.dh60.dh60 as hnd
-# import robot_sim.end_effectors.gripper.dh76.dh76 as hnd
-import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as hnd
+import robot_sim.end_effectors.gripper.dh76.dh76 as hnd
 import robot_sim.robots.robot_interface as ri
 from panda3d.core import CollisionNode, CollisionBox, Point3
 import copy
 import robot_sim.manipulators.machinetool.machinetool_gripper as machine
 import basis.robot_math as rm
 
+
 class GOFA5(ri.RobotInterface):
 
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), name="gofa5", enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, name=name)
         this_dir, this_filename = os.path.split(__file__)
-        # base plate
+        # baseplate
         self.base_stand = jl.JLChain(pos=pos,
                                      rotmat=rotmat,
                                      homeconf=np.zeros(0),
@@ -29,15 +28,14 @@ class GOFA5(ri.RobotInterface):
 
         self.base_stand.lnks[0]['collision_model'] = cm.CollisionModel(
             os.path.join(this_dir, "meshes", "wholetable.STL"),
-            cdprimit_type="box", expand_radius=.00,
+            cdprimit_type="box", expand_radius=.005,
             userdefined_cdprimitive_fn=self._base_combined_cdnp)
-
         self.base_stand.lnks[0]['rgba'] = [.35, .35, .35, 1]
         self.base_stand.reinitialize()
         self.base_stand2 = jl.JLChain(pos=pos,
-                                     rotmat=rotmat,
-                                     homeconf=np.zeros(0),
-                                     name='base_stand2')
+                                      rotmat=rotmat,
+                                      homeconf=np.zeros(0),
+                                      name='base_stand2')
 
         self.base_stand2.lnks[0]['collision_model'] = cm.CollisionModel(
             os.path.join(this_dir, "meshes", "connect.stl"),
@@ -47,9 +45,9 @@ class GOFA5(ri.RobotInterface):
         self.base_stand2.reinitialize()
 
         self.camera1 = jl.JLChain(pos=pos,
-                                     rotmat=rotmat,
-                                     homeconf=np.zeros(0),
-                                     name='camera1')
+                                  rotmat=rotmat,
+                                  homeconf=np.zeros(0),
+                                  name='camera1')
 
         self.camera1.lnks[0]['collision_model'] = cm.CollisionModel(
             os.path.join(this_dir, "meshes", "camera1.stl"),
@@ -59,9 +57,9 @@ class GOFA5(ri.RobotInterface):
         self.camera1.reinitialize()
 
         self.camera2 = jl.JLChain(pos=pos,
-                                     rotmat=rotmat,
-                                     homeconf=np.zeros(0),
-                                     name='camera2')
+                                  rotmat=rotmat,
+                                  homeconf=np.zeros(0),
+                                  name='camera2')
 
         self.camera2.lnks[0]['collision_model'] = cm.CollisionModel(
             os.path.join(this_dir, "meshes", "camera2.stl"),
@@ -84,14 +82,14 @@ class GOFA5(ri.RobotInterface):
 
         # arm
         arm_homeconf = np.zeros(6)
-        self.arm = rbt.GOFA5(pos=pos+[0.13747,-0.03748,0.015],
-                            rotmat=self.base_stand.jnts[-1]['gl_rotmatq'],
-                            homeconf=arm_homeconf,
-                            name='arm', enable_cc=False)
+        self.arm = rbt.GOFA5(pos=pos + [0.13747, -0.03748, 0.015],
+                             rotmat=self.base_stand.jnts[-1]['gl_rotmatq'],
+                             homeconf=arm_homeconf,
+                             name='arm', enable_cc=False)
         # gripper
-        self.hnd = hnd.reconfgripper(pos=self.arm.jnts[-1]['gl_posq'],
+        self.hnd = hnd.Dh76(pos=self.arm.jnts[-1]['gl_posq'],
                             rotmat=self.arm.jnts[-1]['gl_rotmatq'],
-                            name='hnd', enable_cc=False)
+                            name='hnd', fingertip_type='r_76', enable_cc=False)
 
         self.brand = cm.CollisionModel(os.path.join(this_dir, "meshes", "logo_01.stl"))
         self.brand.set_rgba([1, 0, 0, 1])
@@ -134,10 +132,12 @@ class GOFA5(ri.RobotInterface):
         super().enable_cc()
         self.cc.add_cdlnks(self.base_stand, [0])
         self.cc.add_cdlnks(self.base_stand2, [0])
-        self.cc.add_cdlnks(self.camera1,[0])
-        self.cc.add_cdlnks(self.camera2,[0])
-        self.cc.add_cdlnks(self.camera3,[0])
-        self.cc.add_cdlnks(self.arm, [0 , 1, 2, 3, 4, 5, 6])
+        self.cc.add_cdlnks(self.camera1, [0])
+        self.cc.add_cdlnks(self.camera2, [0])
+        self.cc.add_cdlnks(self.camera3, [0])
+        self.cc.add_cdlnks(self.arm, [0, 1, 2, 3, 4, 5, 6])
+        self.cc.add_cdlnks(self.hnd.lft, [0, 1])
+        self.cc.add_cdlnks(self.hnd.rgt, [1])
         activelist = [self.base_stand.lnks[0],
                       self.base_stand2.lnks[0],
                       self.camera1.lnks[0],
@@ -148,7 +148,11 @@ class GOFA5(ri.RobotInterface):
                       self.arm.lnks[3],
                       self.arm.lnks[4],
                       self.arm.lnks[5],
-                      self.arm.lnks[6]
+                      self.arm.lnks[6],
+                      self.hnd.lft.lnks[0],
+                      self.hnd.lft.lnks[1],
+                      # self.hnd.rgt.lnks[0],
+                      self.hnd.rgt.lnks[1]
                       ]
         self.cc.set_active_cdlnks(activelist)
         fromlist = [self.base_stand.lnks[0],
@@ -160,7 +164,12 @@ class GOFA5(ri.RobotInterface):
         intolist = [self.arm.lnks[3],
                     self.arm.lnks[4],
                     self.arm.lnks[5],
-                    self.arm.lnks[6]]
+                    self.arm.lnks[6],
+                    self.hnd.lft.lnks[0],
+                    self.hnd.lft.lnks[1],
+                    # self.hnd.rgt.lnks[0],
+                    self.hnd.rgt.lnks[1]
+                    ]
         self.cc.set_cdpair(fromlist, intolist)
         for oih_info in self.oih_infos:
             objcm = oih_info['collision_model']
@@ -183,6 +192,36 @@ class GOFA5(ri.RobotInterface):
 
     # def jaw_center_rot(self):
     #     return self.machine.jaw_center_rot
+
+    def tracik(self,
+               component_name: str = "arm",
+               urdf_path: str = os.path.join(os.path.dirname(__file__), "urdf/gofa5.urdf"),
+               base_link_name: str = 'base_link',
+               tip_link_name: str = 'link_6',
+               tgt_pos=np.zeros(3),
+               tgt_rotmat=np.eye(3),
+               seed_jnt_values=None):
+        arm_pos = np.array([0.13747, -0.03748, 0.015])
+        arm_rot = np.eye(3)
+        wd_to_rbt = rm.homomat_from_posrot(arm_pos, arm_rot)
+        hand_pos = np.array([0., 0., 0.2035])
+        hand_rot = rm.rotmat_from_axangle([0, 0, 1], np.pi).dot(rm.rotmat_from_axangle([0, 1, 0], -np.pi/2))
+        end_to_hand = rm.homomat_from_posrot(hand_pos.dot(hand_rot), hand_rot)
+        hand_to_end = np.linalg.inv(end_to_hand)
+        tgt_homomat_wd = rm.homomat_from_posrot(tgt_pos, tgt_rotmat)
+        end_homomat_wd = tgt_homomat_wd.dot(hand_to_end)
+        end_homomat_rbt = np.linalg.inv(wd_to_rbt).dot(end_homomat_wd)
+        new_tgt_rot = end_homomat_rbt[:3, :3]
+        new_tgt_pos = end_homomat_rbt[:3, 3]
+        print(self.manipulator_dict[component_name])
+        print(type(self.manipulator_dict[component_name]))
+
+        return self.manipulator_dict[component_name].tracik(urdf_path=urdf_path,
+                                                            base_link_name=base_link_name,
+                                                            tip_link_name=tip_link_name,
+                                                            tgt_pos=new_tgt_pos,
+                                                            tgt_rotmat=new_tgt_rot,
+                                                            seed_jnt_values=seed_jnt_values)
 
     def fk(self, component_name='arm', jnt_values=np.zeros(6)):
         """
@@ -236,7 +275,7 @@ class GOFA5(ri.RobotInterface):
         else:
             raise NotImplementedError
 
-    def jaw_to(self,hand_name, jawwidth=0.0):
+    def jaw_to(self, hand_name, jawwidth=0.0):
         self.hnd.jaw_to(jawwidth)
 
     def hold(self, hnd_name, objcm, jawwidth=None):
@@ -302,11 +341,11 @@ class GOFA5(ri.RobotInterface):
                                        toggle_jntscs=toggle_jntscs,
                                        toggle_connjnt=toggle_connjnt).attach_to(stickmodel)
         self.base_stand2.gen_stickmodel(tcp_jnt_id=tcp_jnt_id,
-                                       tcp_loc_pos=tcp_loc_pos,
-                                       tcp_loc_rotmat=tcp_loc_rotmat,
-                                       toggle_tcpcs=False,
-                                       toggle_jntscs=toggle_jntscs,
-                                       toggle_connjnt=toggle_connjnt).attach_to(stickmodel)
+                                        tcp_loc_pos=tcp_loc_pos,
+                                        tcp_loc_rotmat=tcp_loc_rotmat,
+                                        toggle_tcpcs=False,
+                                        toggle_jntscs=toggle_jntscs,
+                                        toggle_connjnt=toggle_connjnt).attach_to(stickmodel)
         self.arm.gen_stickmodel(tcp_jnt_id=tcp_jnt_id,
                                 tcp_loc_pos=tcp_loc_pos,
                                 tcp_loc_rotmat=tcp_loc_rotmat,
@@ -316,7 +355,7 @@ class GOFA5(ri.RobotInterface):
         self.hnd.gen_stickmodel(toggle_tcpcs=False,
                                 toggle_jntscs=toggle_jntscs).attach_to(stickmodel)
         self.camera1.gen_stickmodel(toggle_tcpcs=False,
-                                toggle_jntscs=toggle_jntscs).attach_to(stickmodel)
+                                    toggle_jntscs=toggle_jntscs).attach_to(stickmodel)
         self.camera2.gen_stickmodel(toggle_tcpcs=False,
                                     toggle_jntscs=toggle_jntscs).attach_to(stickmodel)
         self.camera3.gen_stickmodel(toggle_tcpcs=False,
@@ -342,10 +381,10 @@ class GOFA5(ri.RobotInterface):
                                           toggle_tcpcs=False,
                                           toggle_jntscs=toggle_jntscs).attach_to(meshmodel)
             self.base_stand2.gen_meshmodel(tcp_jnt_id=tcp_jnt_id,
-                                          tcp_loc_pos=tcp_loc_pos,
-                                          tcp_loc_rotmat=tcp_loc_rotmat,
-                                          toggle_tcpcs=False,
-                                          toggle_jntscs=toggle_jntscs).attach_to(meshmodel)
+                                           tcp_loc_pos=tcp_loc_pos,
+                                           tcp_loc_rotmat=tcp_loc_rotmat,
+                                           toggle_tcpcs=False,
+                                           toggle_jntscs=toggle_jntscs).attach_to(meshmodel)
             self.arm.gen_meshmodel(tcp_jnt_id=tcp_jnt_id,
                                    tcp_loc_pos=tcp_loc_pos,
                                    tcp_loc_rotmat=tcp_loc_rotmat,
@@ -356,8 +395,8 @@ class GOFA5(ri.RobotInterface):
                                    toggle_jntscs=toggle_jntscs,
                                    rgba=rgba).attach_to(meshmodel)
             self.camera1.gen_meshmodel(toggle_tcpcs=False,
-                                   toggle_jntscs=toggle_jntscs,
-                                   rgba=rgba).attach_to(meshmodel)
+                                       toggle_jntscs=toggle_jntscs,
+                                       rgba=rgba).attach_to(meshmodel)
             self.camera2.gen_meshmodel(toggle_tcpcs=False,
                                        toggle_jntscs=toggle_jntscs,
                                        rgba=rgba).attach_to(meshmodel)
@@ -365,8 +404,11 @@ class GOFA5(ri.RobotInterface):
                                        toggle_jntscs=toggle_jntscs,
                                        rgba=rgba).attach_to(meshmodel)
             brand = copy.deepcopy(self.brand)
+            brand_rgba = rgba if rgba is not None else [1, 0, 0, 1]
+            brand.set_rgba(brand_rgba)
             brand.attach_to(meshmodel)
             brand_arm = copy.deepcopy(self.brand_arm)
+            brand_arm.set_rgba(brand_rgba)
             brand_arm.attach_to(meshmodel)
         for obj_info in self.oih_infos:
             objcm = obj_info['collision_model']
@@ -383,28 +425,27 @@ if __name__ == '__main__':
     import modeling.geometric_model as gm
 
     base = wd.World(cam_pos=[4, 3, 1], lookat_pos=[0, 0, .0])
+    folder = os.path.dirname(__file__)
 
     gm.gen_frame().attach_to(base)
     robot_s = GOFA5(enable_cc=True)
-    # robot_s.hnd.jaw_to(.06)
+    robot_s.hnd.jaw_to(.06)
     robot_s.gen_meshmodel(toggle_tcpcs=True, toggle_jntscs=False).attach_to(base)
-    # robot_s.hnd.jaw_to(.14)
+    robot_s.hnd.jaw_to(.076)
     robot_s.gen_meshmodel(toggle_tcpcs=True, toggle_jntscs=False).attach_to(base)
     tgt_pos = np.array([.25, .2, .15])
     tgt_rotmat = rm.rotmat_from_axangle([0, 1, 0], math.pi * 2 / 3)
     # gm.gen_frame(pos=tgt_pos, rotmat=tgt_rotmat).attach_to(base)
     robot_s.show_cdprimit()
     # robot_s.gen_stickmodel().attach_to(base)
+    urdf_file = folder + '/urdf/gofa5.urdf'
+    test_pos = np.array([0.733, 0.063, 0.18])
+    test_rot = rm.rotmat_from_axangle([1, 0, 0], np.pi).dot(rm.rotmat_from_axangle([0, 0, 1], np.pi*90/180))
+    gm.gen_frame(test_pos, test_rot).attach_to(base)
+    seed_jnt = np.array([1.71127459e-01, 1.82249335e-01, 5.43805745e-01, -1.58542253e-05,
+                         8.44677978e-01, 1.71138133e-01])
+
+    conf = robot_s.tracik("arm", urdf_file, 'base_link', 'link_6', test_pos, test_rot, seed_jnt)
+    robot_s.fk('arm', conf)
+    robot_s.gen_meshmodel().attach_to(base)
     base.run()
-    # component_name = 'arm'
-    # jnt_values = robot_s.ik(component_name, tgt_pos, tgt_rotmat)
-    # robot_s.fk(component_name, jnt_values=jnt_values)
-    # robot_s_meshmodel = robot_s.gen_meshmodel(toggle_tcpcs=False)
-    # robot_s_meshmodel.attach_to(base)
-    # # robot_s.show_cdprimit()
-    # robot_s.gen_stickmodel().attach_to(base)
-    # tic = time.time()
-    # result = robot_s.is_collided()
-    # toc = time.time()
-    # print(result, toc - tic)
-    # base.run()

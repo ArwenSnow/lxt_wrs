@@ -16,8 +16,6 @@ class RobotInterface(object):
         self.manipulator_dict = {}
         self.ft_sensor_dict = {}
         self.hnd_dict = {}
-        self.lft_dict = {}
-        self.rgt_dict = {}
 
     def change_name(self, name):
         self.name = name
@@ -70,6 +68,21 @@ class RobotInterface(object):
                                                         local_minima=local_minima,
                                                         toggle_debug=toggle_debug)
 
+    def tracik(self,
+               component_name: str = "arm",
+               urdf_path='',
+               base_link_name='',
+               tip_link_name='',
+               tgt_pos=np.zeros(3),
+               tgt_rotmat=np.eye(3),
+               seed_jnt_values=None):
+        return self.manipulator_dict[component_name].tracik(urdf_path=urdf_path,
+                                                            base_link_name=base_link_name,
+                                                            tip_link_name=tip_link_name,
+                                                            tgt_pos=tgt_pos,
+                                                            tgt_rotmat=tgt_rotmat,
+                                                            seed_jnt_values=seed_jnt_values)
+
     def manipulability(self,
                        tcp_jnt_id=None,
                        tcp_loc_pos=None,
@@ -86,8 +99,8 @@ class RobotInterface(object):
                              component_name='arm',
                              type="translational"):
         return self.manipulator_dict[component_name].manipulability_axmat(tcp_jnt_id=tcp_jnt_id,
-                                                                          tcp_loc_pos=tcp_tloc_pos,
-                                                                          tcp_loc_rotmat=tcp_loc_rotma,
+                                                                          tcp_loc_pos=tcp_loc_pos,
+                                                                          tcp_loc_rotmat=tcp_loc_rotmat,
                                                                           type=type)
 
     def jacobian(self,

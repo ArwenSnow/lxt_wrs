@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 import robot_sim._kinematics.collision_checker as cc
+import modeling.model_collection as mc
 
 
 class ManipulatorInterface(object):
@@ -13,6 +14,8 @@ class ManipulatorInterface(object):
         self.jlc = None
         # collision detection
         self.cc = None
+        # cd meshes collection for precise collision checking
+        self.cdmesh_collection = mc.ModelCollection()
 
     @property
     def jnts(self):
@@ -120,6 +123,20 @@ class ManipulatorInterface(object):
                            tcp_loc_rotmat=tcp_loc_rotmat,
                            local_minima=local_minima,
                            toggle_debug=toggle_debug)
+
+    def tracik(self,
+               urdf_path='',
+               base_link_name='',
+               tip_link_name='',
+               tgt_pos=np.zeros(3),
+               tgt_rotmat=np.eye(3),
+               seed_jnt_values=None):
+        return self.jlc.tracik(urdf_path=urdf_path,
+                               base_link_name=base_link_name,
+                               tip_link_name=tip_link_name,
+                               tgt_pos=tgt_pos,
+                               tgt_rotmat=tgt_rotmat,
+                               seed_jnt_values=seed_jnt_values)
 
     def manipulability(self,
                        tcp_jnt_id,
