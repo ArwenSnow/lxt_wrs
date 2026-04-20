@@ -1,7 +1,6 @@
 import copy
 import math
 import numpy as np
-import numpy.typing as npt
 from panda3d.core import CollisionNode, CollisionBox, CollisionSphere, NodePath, BitMask32
 from visualization.panda.world import ShowBase
 import basis.robot_math as rm
@@ -11,7 +10,6 @@ import modeling.model_collection as mc
 import modeling._panda_cdhelper as pcd
 import modeling._ode_cdhelper as mcd
 import warnings as wrn
-
 
 # the following two helpers cannot correcty find collision positions, 20211216
 # TODO check if it is caused by the bad bullet transformation in mcd.update_pose
@@ -24,8 +22,8 @@ class CollisionModel(gm.GeometricModel):
     Both collison primitives will be generated automatically
     Note: This class heaviliy depends on Panda3D
           cdnp nodepath of collsion detection primitives
-          pdnp nodepath of meshes+decorations; decorations = coordinate frames, markers, etc.
-          pdnp nodepath of meshes
+          pdnp nodepath of mesh+decorations; decorations = coordinate frames, markers, etc.
+          pdnp nodepath of mesh
     author: weiwei
     date: 20190312
     """
@@ -120,7 +118,7 @@ class CollisionModel(gm.GeometricModel):
                                                            'obb',
                                                            'convex_hull',
                                                            'triangles']:
-            raise ValueError("Wrong meshes collision model type name!")
+            raise ValueError("Wrong mesh collision model type name!")
         self._cdmesh_type = cdmesh_type
         self._cdmesh = mcd.gen_cdmesh_vvnf(*self.extract_rotated_vvnf())
 
@@ -146,16 +144,12 @@ class CollisionModel(gm.GeometricModel):
     def get_scale(self):
         return da.pdv3_to_npv3(self._objpdnp.getScale())
 
-    def set_pos(self, pos: npt.NDArray = np.zeros(3)):
-        self._objpdnp.setPos(pos[0], pos[1], pos[2])
+    def set_pos(self, npvec3):
+        self._objpdnp.setPos(npvec3[0], npvec3[1], npvec3[2])
         mcd.update_pose(self._cdmesh, self._objpdnp)
 
-    def set_rotmat(self, rotmat: npt.NDArray = np.eye(3)):
-        self._objpdnp.setQuat(da.npmat3_to_pdquat(rotmat))
-        mcd.update_pose(self._cdmesh, self._objpdnp)
-
-    def set_pose(self, pos: npt.NDArray = np.zeros(3), rotmat: npt.NDArray = np.eye(3)):
-        self._objpdnp.setPosQuat(da.npv3_to_pdv3(pos), da.npmat3_to_pdquat(rotmat))
+    def set_rotmat(self, npmat3):
+        self._objpdnp.setQuat(da.npmat3_to_pdquat(npmat3))
         mcd.update_pose(self._cdmesh, self._objpdnp)
 
     def set_homomat(self, npmat4):
@@ -230,7 +224,7 @@ class CollisionModel(gm.GeometricModel):
         Return a nodepath including the cdcn,
         the returned nodepath is attached to the given one
         :param nodepath: parent np
-        :param homomat: allow specifying a special homomat to virtually represent a pose that is different from the meshes
+        :param homomat: allow specifying a special homomat to virtually represent a pose that is different from the mesh
         :return:
         author: weiwei
         date: 20180811
@@ -262,6 +256,8 @@ class CollisionModel(gm.GeometricModel):
             self._objpdnp.reparentTo(obj.render)
         elif isinstance(obj, mc.ModelCollection):
             obj.add_cm(self)
+        elif isinstance(obj, NodePath):
+            self._objpdnp.reparentTo(obj)
         else:
             print("Must be ShowBase, modeling.StaticGeometricModel, GeometricModel, CollisionModel, "
                   "or CollisionModelCollection!")
@@ -281,7 +277,7 @@ class CollisionModel(gm.GeometricModel):
 
     def is_mcdwith(self, objcm_list, toggle_contacts=False):
         """
-        Is the meshes of the cm collide with the meshes of the given cm
+        Is the mesh of the cm collide with the mesh of the given cm
         :param objcm_list: one or a list of Collision Model object
         :param toggle_contacts: return a list of contact points if toggle_contacts is True
         author: weiwei
@@ -299,7 +295,7 @@ class CollisionModel(gm.GeometricModel):
 
     def ray_hit(self, point_from, point_to, option="all"):
         """
-        check the intersection between segment point_from-point_to and the meshes
+        check the intersection between segment point_from-point_to and the mesh
         :param point_from: 1x3 nparray
         :param point_to:
         :param option: "all" or “closest"
@@ -329,15 +325,12 @@ class CollisionModel(gm.GeometricModel):
     def copy(self):
         return CollisionModel(self)
 
-    def __deepcopy__(self, memodict={}):
-        """
-        override __deepcopy__ to bypass the ode deprecated function problem
-        :param memodict:
-        :return:
-        author: weiwei
-        date: 20220115toyonaka
-        """
-        return self.copy()
+    def get_com(self):
+        com = self._objtrm.center_mass
+        return com
+    # def objpdnp(self):
+    #     # read-only property
+    #     return self._objpdnp
 
 
 def gen_box(extent=np.array([.1, .1, .1]), homomat=np.eye(4), rgba=np.array([1, 0, 0, 1])):
@@ -352,6 +345,29 @@ def gen_box(extent=np.array([.1, .1, .1]), homomat=np.eye(4), rgba=np.array([1, 
     box_cm = CollisionModel(box_sgm)
     return box_cm
 
+def gen_cylinder(radius=0.1, height= 0.2, section = 100, homomat= np.eye(4), rgba = (1,1,0,1)):
+    """
+    :param extent:
+    :param homomat:
+    :return:
+    author: hu
+    date: 20220113
+    """
+    cld_sgm = gm.gen_cylinder(radius=radius, height= height, section = section, homomat= homomat, rgba = rgba)
+    cld_cm = CollisionModel(cld_sgm)
+    return cld_cm
+
+def gen_capsule(spos=(0,0,0), epos= (0,0,0.01), section = [100, 100], radius = 0.001, rgba = (1,1,0,1)):
+    """
+    :param extent:
+    :param homomat:
+    :return:
+    author: hu
+    date: 20220113
+    """
+    cld_sgm = gm.gen_capsule(spos=spos, epos= epos, section = section, radius = radius, rgba = rgba)
+    cld_cm = CollisionModel(cld_sgm)
+    return cld_cm
 
 def gen_sphere(pos=np.array([0, 0, 0]), radius=0.01, rgba=[1, 0, 0, 1]):
     """
@@ -369,7 +385,7 @@ def gen_sphere(pos=np.array([0, 0, 0]), radius=0.01, rgba=[1, 0, 0, 1]):
 
 def gen_stick(spos=np.array([.0, .0, .0]),
               epos=np.array([.0, .0, .1]),
-              thickness=.005, type="round",
+              thickness=.005, type="rect",
               rgba=[1, 0, 0, 1],
               sections=8):
     """
@@ -397,14 +413,12 @@ if __name__ == "__main__":
 
     base = wd.World(cam_pos=[.3, .3, .3], lookat_pos=[0, 0, 0], toggle_debug=True)
     objpath = os.path.join(basis.__path__[0], 'objects', 'bunnysim.stl')
-    bunnycm = CollisionModel(objpath, cdprimit_type='box', expand_radius=.1)
+    bunnycm = CollisionModel(objpath, cdprimit_type='polygons')
     bunnycm.set_rgba([0.7, 0.7, 0.0, .2])
     bunnycm.show_localframe()
     rotmat = rm.rotmat_from_axangle([1, 0, 0], math.pi / 2.0)
     bunnycm.set_rotmat(rotmat)
     bunnycm.show_cdprimit()
-    bunnycm.attach_to(base)
-    base.run()
 
     bunnycm1 = CollisionModel(objpath, cdprimit_type="cylinder")
     bunnycm1.set_rgba([0.7, 0, 0.7, 1.0])
@@ -441,7 +455,7 @@ if __name__ == "__main__":
     # tic = time.time()
     # bunnycm2.is_mcdwith([bunnycm, bunnycm1])
     # toc = time.time()
-    # print("meshes cd cost: ", toc - tic)
+    # print("mesh cd cost: ", toc - tic)
     # tic = time.time()
     # bunnycm2.is_pcdwith([bunnycm, bunnycm1])
     # toc = time.time()

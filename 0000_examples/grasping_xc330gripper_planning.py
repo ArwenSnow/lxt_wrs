@@ -15,7 +15,7 @@ object.set_rgba([.9, .75, .35, 1])
 object.attach_to(base)
 
 # hnd_s
-gripper_s = xc.xc330gripper()
+gripper_s = xc.Xc330gripper()
 grasp_info_list = gpa.plan_grasps(gripper_s, object,
                                   angle_between_contact_normals=math.radians(160),
                                   openning_direction='loc_x',

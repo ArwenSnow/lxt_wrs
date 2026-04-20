@@ -5,7 +5,7 @@ import visualization.panda.world as wd
 import modeling.geometric_model as gm
 import modeling.collision_model as cm
 import grasping.planning.antipodal as gpa
-import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as rf
+import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper_old as rf
 import robot_sim.robots.gofa5.gofa5 as gf5
 
 base = wd.World(cam_pos=[1, 1, 1], lookat_pos=[0, 0, 0])
@@ -38,11 +38,11 @@ finger_2.set_rgba([.7, .7, .7, 1])
 
 # hnd_s
 if g == 'l':
-    gripper = rf.reconfgripper().lft
+    gripper = rf.Reconfgripper().lft
 elif g == 'r':
-    gripper = rf.reconfgripper().rgt
-gripper_m = rf.reconfgripper()
-gripper_b = rf.reconfgripper().body
+    gripper = rf.Reconfgripper().rgt
+gripper_m = rf.Reconfgripper()
+gripper_b = rf.Reconfgripper().body
 
 # tool_s
 tool = cm.CollisionModel("objects/tool.stl")
@@ -55,9 +55,9 @@ object_1.set_pos(np.array([.5, .2, -0.015]))
 object_1.attach_to(base)
 
 # gripper_grasp_finger
-lfor_grasp_object = gpa.load_pickle_file('lfor_grasp_object', '../robot_con/gofa_con/grasp_reconfgripper/path_list/grasp_finger_info/', 'lfor_grasp_object.pickle')
-rfor_grasp_object = gpa.load_pickle_file('rfor_grasp_object', '../robot_con/gofa_con/grasp_reconfgripper/path_list/grasp_finger_info/', 'rfor_grasp_object.pickle')
-counter = gpa.load_pickle_file('counter', '../robot_con/gofa_con/grasp_reconfgripper/path_list/grasp_finger_info/', 'counter.pickle')
+lfor_grasp_object = gpa.load_pickle_file('lfor_grasp_object', '../robot_con/gofa_con/grasp_reconfgripper/grasp_reconfgripper/path_list/grasp_finger_info/', 'lfor_grasp_object.pickle')
+rfor_grasp_object = gpa.load_pickle_file('rfor_grasp_object', '../robot_con/gofa_con/grasp_reconfgripper/grasp_reconfgripper/path_list/grasp_finger_info/', 'rfor_grasp_object.pickle')
+counter = gpa.load_pickle_file('counter', '../robot_con/gofa_con/grasp_reconfgripper/grasp_reconfgripper/path_list/grasp_finger_info/', 'counter.pickle')
 l_count = counter[0]
 r_count = counter[1]
 ljaw_width, ljaw_center_pos, ljaw_center_rotmat, lhnd_pos, lhnd_rotmat = lfor_grasp_object[l_count]

@@ -27,32 +27,34 @@ class PGC(gp.GripperInterface):
 
         # lft
         self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
-        self.lft.lnks[0]['name'] = "base"
-        self.lft.lnks[0]['loc_pos'] = np.zeros(3)
-        self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "base.stl")
-        self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
 
         self.lft.jnts[1]['loc_pos'] = np.array([-.03352, -.01135, .132])
         self.lft.jnts[1]['type'] = 'prismatic'
         self.lft.jnts[1]['motion_rng'] = [0, 5]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
-        self.lft.lnks[1]['name'] = "fingertip1"
-        self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip1.stl")
-        self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
         self.lft.jnts[2]['loc_pos'] = np.array([.08652, -.00665, 0])
         self.lft.jnts[2]['loc_rotmat'] = np.array([0, 0, 0])
         self.lft.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, 0)
+
+        self.lft.lnks[0]['name'] = "base"
+        self.lft.lnks[0]['loc_pos'] = np.zeros(3)
+        self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "base.stl")
+        self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
+        self.lft.lnks[1]['name'] = "fingertip1"
+        self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip1.stl")
+        self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
 
         # rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
         self.rgt.jnts[1]['loc_pos'] = np.array([.03352, .01135, .132])
         self.rgt.jnts[1]['type'] = 'prismatic'
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
+        self.rgt.jnts[2]['loc_pos'] = np.array([-.08652, .00665, 0])
+        self.rgt.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, 0)
+
         self.rgt.lnks[1]['name'] = "fingertip2"
         self.rgt.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "fingertip2.stl")
         self.rgt.lnks[1]['rgba'] = [.5, .5, .5, 1]
-        self.rgt.jnts[2]['loc_pos'] = np.array([-.08652, .00665, 0])
-        self.rgt.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(0, 0, 0)
 
         # object
         self.object_1 = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='object')
@@ -76,15 +78,7 @@ class PGC(gp.GripperInterface):
 
         # collision detection
         self.all_cdelements = []
-        self.enable_cc(toggle_cdprimit=enable_cc)
-
-        base_objpath = os.path.join(this_dir, "meshes", "base.stl")
-        base = cm.CollisionModel(base_objpath, cdprimit_type='box')
-        # fingertip1_objpath = os.path.join(this_dir, "meshes", "fingertip1.stl")
-        # fingertip1 = cm.CollisionModel(fingertip1_objpath, cdprimit_type='box')
-        # fingertip2_objpath = os.path.join(this_dir, "meshes", "fingertip2.stl")
-        # fingertip2 = cm.CollisionModel(fingertip2_objpath, cdprimit_type='box')
-        self.collision_model = base
+        # self.enable_cc(toggle_cdprimit=enable_cc)
 
         # finger_type
         self.finger_type = None
@@ -223,23 +217,22 @@ class PGC(gp.GripperInterface):
             gm.gen_mycframe(pos=jaw_center_gl_pos, rotmat=jaw_center_gl_rotmat).attach_to(meshmodel)
         return meshmodel
 
-
     def mg_open(self):
-        '''
+        """
         Main gripper open
-        '''
+        """
         self.jaw_to(.063)
 
     def mg_close(self):
-        '''
+        """
         Main gripper close
-        '''
+        """
         self.jaw_to(0)
 
     def mg_jaw_to(self, jawwidth):
-        '''
+        """
         Main gripper jaws to "jawwidth"
-        '''
+        """
         if jawwidth > self.jawwidth_rng[1]:
             raise ValueError("The jaw_width parameter is out of range!")
         self.fk(motion_val=jawwidth / 2.0)
@@ -347,19 +340,18 @@ class PGC(gp.GripperInterface):
         else:
             raise ValueError("Invalid finger type.")
 
+
 if __name__ == '__main__':
     import visualization.panda.world as wd
     import modeling.geometric_model as gm
 
-
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0], auto_cam_rotate=False)
     gm.gen_frame().attach_to(base)
-    # cm.CollisionModel("meshes/dual_realsense.stl", expand_radius=.001).attach_to(base)
+
     grpr = PGC(enable_cc=True)
-    # grpr.gen_meshmodel().attach_to(base)
     grpr.mg_close()
-    grpr.jaw_to(0.0)
-    jawwidth = grpr.get_jawwidth()
-    print(jawwidth)
+    # grpr.show_cdprimit()
     grpr.gen_meshmodel().attach_to(base)
     base.run()
+
+

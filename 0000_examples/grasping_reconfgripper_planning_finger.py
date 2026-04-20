@@ -5,7 +5,7 @@ import visualization.panda.world as wd
 import modeling.geometric_model as gm
 import modeling.collision_model as cm
 import grasping.planning.antipodal as gpa
-import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as rf
+import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper_old as rf
 import robot_sim.robots.gofa5.gofa5 as gf5
 import motion.probabilistic.rrt_connect as rrtc
 
@@ -42,11 +42,11 @@ finger_2.set_rgba([.7, .7, .7, 1])
 
 # hnd_s
 if g == 'l':
-    gripper = rf.reconfgripper().lft
+    gripper = rf.Reconfgripper().lft
 elif g == 'r':
-    gripper = rf.reconfgripper().rgt
-gripper_m = rf.reconfgripper()
-gripper_b = rf.reconfgripper().body
+    gripper = rf.Reconfgripper().rgt
+gripper_m = rf.Reconfgripper()
+gripper_b = rf.Reconfgripper().body
 
 # tool for planning finger grasps
 tool = cm.CollisionModel("objects/tool.stl")
@@ -110,6 +110,7 @@ for grasp_info in grasp_info_list:
     desired_direction = np.array([-1, 0, 0])
     cos_angle = np.dot(x_axis_direction, desired_direction) / (
             np.linalg.norm(x_axis_direction) * np.linalg.norm(desired_direction))
+    print("夹角余弦为：", cos_angle)
     if (g == 'l' and cos_angle == -1) or (g == 'r' and cos_angle == 1):
         finger_grasp_info_list.append(grasp_info)
 
@@ -124,10 +125,10 @@ n = gripper_b.jawwidth_rng
 
 # finger_grasp_object
 object_grasp_info_list = gpa.plan_grasps(gripper_b, target_object,
-                                  angle_between_contact_normals=math.radians(160),
-                                  openning_direction='loc_x',
-                                  max_samples=5, min_dist_between_sampled_contact_points=.005,
-                                  contact_offset=.001)
+                                         angle_between_contact_normals=math.radians(160),
+                                         openning_direction='loc_x',
+                                         max_samples=5, min_dist_between_sampled_contact_points=.005,
+                                         contact_offset=.001)
 
 new_object_grasp_info_list = []
 for object_grasp_info in object_grasp_info_list:

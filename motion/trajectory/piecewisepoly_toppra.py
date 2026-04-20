@@ -7,6 +7,7 @@ import toppra.algorithm as algo
 # use pip install git+https://github.com/hungpham2511/toppra to install toppra
 # webpage is at: https://hungpham2511.github.io/toppra/installation.html
 
+
 class PiecewisePolyTOPPRA(object):
 
     def __init__(self):

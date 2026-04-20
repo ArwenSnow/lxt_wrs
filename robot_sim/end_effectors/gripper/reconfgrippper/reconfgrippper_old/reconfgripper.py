@@ -293,6 +293,7 @@ if __name__ == '__main__':
     grpr.gripper_bool(g='r')
     grpr.gripper_bool(g='m')
     grpr.gen_meshmodel().attach_to(base)
+    grpr.show_cdprimit()
     base.run()
 
 

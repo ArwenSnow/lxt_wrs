@@ -22,10 +22,10 @@ object_2.set_rgba([.9, .75, .35, 1])
 # hnd_s
 g = 'rgt'
 if g == 'lft':
-    gripper = rf.reconfgripper().lft
+    gripper = rf.Reconfgripper().lft
 elif g =='rgt':
-    gripper = rf.reconfgripper().rgt
-gripper_m = rf.reconfgripper()
+    gripper = rf.Reconfgripper().rgt
+gripper_m = rf.Reconfgripper()
 
 grasp_info_list = gpa.plan_grasps(gripper, object_1,
                                   angle_between_contact_normals=math.radians(160),

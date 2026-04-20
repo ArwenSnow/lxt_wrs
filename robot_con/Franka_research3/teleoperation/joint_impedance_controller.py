@@ -1,0 +1,166 @@
+
+import numpy as np
+import time
+from typing import Optional, Tuple
+
+import sys
+
+sys.path.insert(0, '/home/lruiqing/wrs_shu/robot_con/Franka_research3')
+from motion_generator import MotionGenerator
+
+
+class JointImpedanceController:
+    """
+    关节空间阻抗控制器，包含平滑启动（MotionGenerator）和实时跟踪模式。
+    """
+
+    def __init__(self, stiffness: list, damping: list, alpha: float = 0.2,
+                 speed_factor: float = 0.2, max_target_age: float = 0.5):
+        """
+        初始化控制器。
+
+        :param stiffness: 刚度系数列表，长度为 7
+        :param damping: 阻尼系数列表，长度为 7
+        :param alpha: 速度低通滤波系数 (0 < alpha ≤ 1)
+        :param speed_factor: 运动生成器速度因子 (0 < speed_factor ≤ 1)
+        :param max_target_age: 目标最大允许时间（秒），超过此时间则标记为无效
+        """
+        self.K = np.array(stiffness, dtype=np.float64)
+        self.D = np.array(damping, dtype=np.float64)
+        self.alpha = alpha
+        self.speed_factor = speed_factor
+        self.max_target_age = max_target_age
+
+        # 滤波后的速度
+        self.dq_filtered = np.zeros(7)
+
+        # 目标相关
+        self.latest_target: Optional[np.ndarray] = None  # 保存从外部（UDP 接收线程）接收到的最新目标关节角
+        self.target_valid = False  # 基于时间戳判断当前latest_target是否有效，若超时False，转而使用上一次的有效目标
+        self.last_target_time = 0.0  # 记录最近一次更新目标的时间戳，用于与当前时间比较以判断目标是否超时
+
+        # 运动生成器相关
+        self.motion_gen = None  # 存储 MotionGenerator 实例，用于平滑启动
+        self.motion_gen_initialized = False  # 运动生成器是否已创建（是否已收到第一个目标）
+        self.move_to_start_finished = False  # 标记平滑过渡阶段是否已完成，完成后控制器将切换至实时跟踪模式，直接使用最新目标
+        self.start_time = 0.0  # 运动生成器启动的时刻
+        self.time_elapsed = 0.0  # 从运动生成器启动到当前控制周期的时间累计，用于向 motion_gen 查询期望位置
+
+        # 用于保持上一次目标（当目标失效时）
+        self.last_q_goal: Optional[np.ndarray] = None
+
+        # 实时跟踪里，用于对传给franka的数据做插值，避免跳变
+        self.dq_max = np.array([2.0, 2.0, 2.0, 2.0, 2.5, 2.5, 2.5]) * speed_factor   # 最大速度
+        self.ddq_max = np.array([5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]) * speed_factor  # 最大加速度
+        self.max_step = self.dq_max * 0.001
+        self.smooth_target = None  # 当前平滑目标位置
+        self.smooth_vel = np.zeros(7)  # 当前平滑目标的速度（用于加速度限制）
+
+    def set_target(self, target: np.ndarray, timestamp: float) -> None:
+        """
+        设置最新目标关节角。
+
+        :param target: 长度为7的关节角数组
+        :param timestamp: 目标生成时的时间戳（秒）
+        """
+        self.latest_target = target.copy()
+        self.last_target_time = timestamp
+        self.target_valid = True
+
+    def update(self, q: np.ndarray, dq: np.ndarray, dt: float, current_time: float) -> np.ndarray:
+        """
+        每个控制周期调用一次，计算期望力矩。
+
+        :param q: 当前关节角（7维）
+        :param dq: 当前关节速度（7维）
+        :param dt: 自上次调用以来的时间增量（秒）
+        :param current_time: 当前时间戳（秒）
+        :return: 期望关节力矩数组（7维）
+        """
+        if dt <= 1e-4:
+            dt = 1e-4  # 防止极端dt导致除以0
+        # 1. 速度低通滤波
+        if self.dq_filtered is None:
+            self.dq_filtered = dq.copy()
+        else:
+            self.dq_filtered = (1 - self.alpha) * self.dq_filtered + self.alpha * dq
+
+        # 2. 检查目标是否超时
+        if self.target_valid and (current_time - self.last_target_time > self.max_target_age):
+            self.target_valid = False
+
+        # 3. 初始化阶段：等待第一个有效目标
+        if not self.motion_gen_initialized:
+            if self.target_valid:
+                # 初始化运动生成器
+                self.motion_gen = MotionGenerator(self.speed_factor, q, self.latest_target)
+                self.motion_gen_initialized = True
+                self.move_to_start_finished = False
+                self.start_time = current_time
+                self.time_elapsed = 0.0
+            else:
+                # 尚无目标，发送零力矩（机器人可自由移动）
+                return np.zeros(7)
+
+        # 4. 平滑过渡到第一个目标
+        if not self.move_to_start_finished:
+            self.time_elapsed += dt
+            q_goal, self.move_to_start_finished = self.motion_gen.get_desired_joint_positions(self.time_elapsed)
+            if self.move_to_start_finished:
+                self.smooth_target = q_goal.copy()
+                self.smooth_vel = np.zeros(7)
+        else:
+            # 5. 实时跟踪模式
+            if self.smooth_target is None:
+                self.smooth_target = q.copy()
+
+            if self.target_valid and self.latest_target is not None:
+                diff = self.latest_target - self.smooth_target  # 理论上想达到的位置
+                if np.linalg.norm(diff) < 1e-2:
+                    self.smooth_target = self.latest_target.copy()
+                    self.smooth_vel = np.zeros(7)
+                    final_vel = np.zeros(7)
+                else:
+                    desired_vel = diff / dt  # 理论上想达到的速度
+
+                    # 5.1 限制速度（保留方向）
+                    scale_vel = 1.0
+                    for i in range(7):
+                        if abs(desired_vel[i]) > self.dq_max[i]:
+                            scale_vel = min(scale_vel, self.dq_max[i] / abs(desired_vel[i]))
+                    desired_vel *= scale_vel
+
+                    # 5.2 限制加速度（保留方向）
+                    desired_acc = (desired_vel - self.smooth_vel) / dt  # 理论加速度
+                    scale_acc = 1.0
+                    for i in range(7):
+                        if abs(desired_acc[i]) > self.ddq_max[i]:
+                            scale_acc = min(scale_acc, self.ddq_max[i] / abs(desired_acc[i]))
+
+                    # 5.3 本周期的最终速度
+                    final_vel = self.smooth_vel + desired_acc * scale_acc * dt
+
+            else:
+                # 5.4 目标无效时，速度逐渐衰减到0，并继续更新位置
+                # self.smooth_target = q.copy()
+                # self.smooth_vel = np.zeros(7)
+                # final_vel = np.zeros(7)
+                final_vel = self.smooth_vel * 0.9
+                if np.linalg.norm(final_vel) < 1e-4:
+                    final_vel = np.zeros(7)
+
+            # 5.5 更新平滑状态
+            self.smooth_target += final_vel * dt
+            self.smooth_vel = final_vel
+
+            q_goal = self.smooth_target
+        # 保存本次目标供下次失效时使用
+        self.last_q_goal = q_goal
+
+        # 6. 阻抗控制律
+        error = q_goal - q
+        error = np.where(np.abs(error) < 0.0005, 0, error)
+
+        tau = self.K * error - self.D * self.dq_filtered
+
+        return tau

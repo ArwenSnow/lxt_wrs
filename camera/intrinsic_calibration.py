@@ -2,11 +2,11 @@ import cv2
 import numpy as np
 import os
 
-CHECKERBOARD = (11, 8)  # 棋盘格内角点数量（实际行列数-1）
-SQUARE_SIZE = 20  # 棋盘格实际物理尺寸（单位：毫米）
+CHECKERBOARD = (8, 6)  # 棋盘格内角点数量（实际行列数-1）
+SQUARE_SIZE = 15  # 棋盘格实际物理尺寸（单位：毫米）
 # 定义角点检测的终止条件（最大迭代30次或者误差小于0.001）
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-SAV_DIR = r"C:\Users\11154\Documents\GitHub\lxt_wrs\camera\pic"  # 采集的棋盘格图像存储目录
+SAV_DIR = r"C:\Users\11154\Documents\GitHub\lxt_wrs\camera\picture\pic_1"  # 采集的棋盘格图像存储目录
 
 # 初始化三维坐标点
 # objp创建了虚拟的棋盘格3D坐标（Z坐标默认为0)，形状位(81,3)的全零浮点数，对应81个内角点
@@ -86,11 +86,11 @@ print(mtx)
 print("\n畸变系数 (k1, k2, p1, p2, k3):")
 print(dist.ravel())
 # 保存结果为NumPy文件
-np.savez("camera_calibration_result.npz",
+np.savez("camera_calibration_result_8.npz",
          mtx=mtx,
          dist=dist,
          resolution=img.shape[:2][::-1])
-print("\n标定结果已保存到 camera_calibration_result.npz")
+print("\n标定结果已保存到 camera_calibration_result_8.npz")
 
 # 显示去畸变示例
 img = cv2.imread(os.path.join(SAV_DIR, os.listdir(SAV_DIR)[0]))

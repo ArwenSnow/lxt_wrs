@@ -13,6 +13,8 @@ from panda3d.core import CollisionNode, CollisionBox, Point3
 import copy
 import robot_sim.manipulators.machinetool.machinetool_gripper as machine
 import basis.robot_math as rm
+from typing import Literal
+from trac_ik import TracIK
 
 
 class GOFA5(ri.RobotInterface):
@@ -20,6 +22,7 @@ class GOFA5(ri.RobotInterface):
     def __init__(self, pos=np.zeros(3), rotmat=np.eye(3), name="gofa5", enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, name=name)
         this_dir, this_filename = os.path.split(__file__)
+        self.iksolver_cache = {}
         # baseplate
         self.base_stand = jl.JLChain(pos=pos,
                                      rotmat=rotmat,
@@ -193,6 +196,40 @@ class GOFA5(ri.RobotInterface):
     # def jaw_center_rot(self):
     #     return self.machine.jaw_center_rot
 
+    # def get_tgt_pose_in_rbt(self, tgt_pos, tgt_rotmat):
+    #     arm_pos = self.arm.pos
+    #     arm_rot = self.arm.rotmat
+    #     wd_to_rbt = rm.homomat_from_posrot(arm_pos, arm_rot)
+    #     hand_pos = np.array([0., 0., 0.2035])  # 手爪与机器人末端的位置与旋转，根据使用手爪进行改变
+    #     hand_rot = np.eye(3)
+    #     end_to_hand = rm.homomat_from_posrot(hand_pos.dot(hand_rot), hand_rot)
+    #     hand_to_end = np.linalg.inv(end_to_hand)
+    #     tgt_homomat_wd = rm.homomat_from_posrot(tgt_pos, tgt_rotmat)
+    #     end_homomat_wd = tgt_homomat_wd.dot(hand_to_end)
+    #     end_homomat_rbt = np.linalg.inv(wd_to_rbt).dot(end_homomat_wd)
+    #     new_tgt_rot = end_homomat_rbt[:3, :3]
+    #     new_tgt_pos = end_homomat_rbt[:3, 3]
+    #     return new_tgt_pos, new_tgt_rot
+    #
+    # def tracik(self,
+    #            urdf_path: str = os.path.join(os.path.dirname(__file__), "urdf/ur7e.urdf"),
+    #            base_link_name: str = 'base_link',
+    #            tip_link_name: str = 'wrist_3_link',
+    #            tgt_pos=np.zeros(3),
+    #            tgt_rotmat=np.eye(3),
+    #            seed_jnt_values=None,
+    #            solver_type: Literal['Speed', 'Distance', 'Manip1', 'Manip2'] = "Manip1"):
+    #     new_tgt_pos, new_tgt_rot = self.get_tgt_pose_in_rbt(tgt_pos, tgt_rotmat)
+    #     key = (urdf_path, base_link_name, tip_link_name, solver_type)
+    #     if key not in self.iksolver_cache:
+    #         self.iksolver_cache[key] = TracIK(base_link_name=base_link_name,
+    #                                           tip_link_name=tip_link_name,
+    #                                           urdf_path=urdf_path,
+    #                                           solver_type=solver_type)
+    #     iksolver = self.iksolver_cache[key]
+    #     seed_jnt_values = seed_jnt_values if seed_jnt_values is not None else np.zeros(6)
+    #     return iksolver.ik(new_tgt_pos, new_tgt_rot, seed_jnt_values)
+
     def tracik(self,
                component_name: str = "arm",
                urdf_path: str = os.path.join(os.path.dirname(__file__), "urdf/gofa5.urdf"),
@@ -204,17 +241,18 @@ class GOFA5(ri.RobotInterface):
         arm_pos = np.array([0.13747, -0.03748, 0.015])
         arm_rot = np.eye(3)
         wd_to_rbt = rm.homomat_from_posrot(arm_pos, arm_rot)
+
         hand_pos = np.array([0., 0., 0.2035])
         hand_rot = rm.rotmat_from_axangle([0, 0, 1], np.pi).dot(rm.rotmat_from_axangle([0, 1, 0], -np.pi/2))
         end_to_hand = rm.homomat_from_posrot(hand_pos.dot(hand_rot), hand_rot)
         hand_to_end = np.linalg.inv(end_to_hand)
+
         tgt_homomat_wd = rm.homomat_from_posrot(tgt_pos, tgt_rotmat)
         end_homomat_wd = tgt_homomat_wd.dot(hand_to_end)
         end_homomat_rbt = np.linalg.inv(wd_to_rbt).dot(end_homomat_wd)
         new_tgt_rot = end_homomat_rbt[:3, :3]
         new_tgt_pos = end_homomat_rbt[:3, 3]
-        print(self.manipulator_dict[component_name])
-        print(type(self.manipulator_dict[component_name]))
+        gm.gen_frame(new_tgt_pos, new_tgt_rot).attach_to(base)
 
         return self.manipulator_dict[component_name].tracik(urdf_path=urdf_path,
                                                             base_link_name=base_link_name,
@@ -429,15 +467,13 @@ if __name__ == '__main__':
 
     gm.gen_frame().attach_to(base)
     robot_s = GOFA5(enable_cc=True)
-    robot_s.hnd.jaw_to(.06)
-    robot_s.gen_meshmodel(toggle_tcpcs=True, toggle_jntscs=False).attach_to(base)
+
     robot_s.hnd.jaw_to(.076)
     robot_s.gen_meshmodel(toggle_tcpcs=True, toggle_jntscs=False).attach_to(base)
     tgt_pos = np.array([.25, .2, .15])
     tgt_rotmat = rm.rotmat_from_axangle([0, 1, 0], math.pi * 2 / 3)
-    # gm.gen_frame(pos=tgt_pos, rotmat=tgt_rotmat).attach_to(base)
     robot_s.show_cdprimit()
-    # robot_s.gen_stickmodel().attach_to(base)
+
     urdf_file = folder + '/urdf/gofa5.urdf'
     test_pos = np.array([0.733, 0.063, 0.18])
     test_rot = rm.rotmat_from_axangle([1, 0, 0], np.pi).dot(rm.rotmat_from_axangle([0, 0, 1], np.pi*90/180))
@@ -446,6 +482,7 @@ if __name__ == '__main__':
                          8.44677978e-01, 1.71138133e-01])
 
     conf = robot_s.tracik("arm", urdf_file, 'base_link', 'link_6', test_pos, test_rot, seed_jnt)
+    print(conf)
     robot_s.fk('arm', conf)
     robot_s.gen_meshmodel().attach_to(base)
     base.run()

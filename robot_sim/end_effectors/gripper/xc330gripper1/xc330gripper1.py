@@ -6,17 +6,17 @@ import basis.robot_math as rm
 import robot_sim.end_effectors.gripper.gripper_interface as gp
 import modeling.geometric_model as gm
 import modeling.collision_model as cm
+from panda3d.core import CollisionNode, CollisionBox, Point3
 
 
-class xc330gripper(gp.GripperInterface):
-
+class Xc330gripper(gp.GripperInterface):
     def __init__(self,
                  pos=np.zeros(3),
                  rotmat=np.eye(3),
                  coupling_offset_pos=np.zeros(3),
                  coupling_offset_rotmat=np.eye(3),
                  cdmesh_type='box',
-                 name='xc330gripper',
+                 name='Xc330gripper',
                  enable_cc=True):
         super().__init__(pos=pos, rotmat=rotmat, cdmesh_type=cdmesh_type, name=name)
         this_dir, this_filename = os.path.split(__file__)
@@ -29,19 +29,29 @@ class xc330gripper(gp.GripperInterface):
         self.coupling.reinitialize()
         cpl_end_pos = self.coupling.jnts[-1]['gl_posq']
         cpl_end_rotmat = self.coupling.jnts[-1]['gl_rotmatq']
+
         # - lft
         self.lft = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='base_lft_finger')
         self.lft.jnts[1]['loc_pos'] = np.array([-.0178, .0255, .0412])
         self.lft.jnts[1]['type'] = 'prismatic'
         self.lft.jnts[1]['motion_rng'] = [0, .0145]
         self.lft.jnts[1]['loc_motionax'] = np.array([1, 0, 0])
+
         self.lft.lnks[0]['name'] = "body"
         self.lft.lnks[0]['loc_pos'] = np.zeros(3)
-        self.lft.lnks[0]['mesh_file'] = os.path.join(this_dir, "meshes", "body.stl")
+        self.lft.lnks[0]['mesh_file'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "body.stl"),
+                                                          cdprimit_type="user_defined",
+                                                          userdefined_cdprimitive_fn=self._hnd_base_cdnp,
+                                                          expand_radius=0)
         self.lft.lnks[0]['rgba'] = [.2, .2, .2, 1]
+
         self.lft.lnks[1]['name'] = "lft"
-        self.lft.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "lft.stl")
+        self.lft.lnks[1]['mesh_file'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "lft.stl"),
+                                                          cdprimit_type="user_defined",
+                                                          userdefined_cdprimitive_fn=self._finger_left_cdnp,
+                                                          expand_radius=0)
         self.lft.lnks[1]['rgba'] = [.5, .5, .5, 1]
+
         # - rgt
         self.rgt = jl.JLChain(pos=cpl_end_pos, rotmat=cpl_end_rotmat, homeconf=np.zeros(1), name='rgt_finger')
         self.rgt.jnts[1]['loc_pos'] = np.array([-.0352, .0105, .0412])
@@ -50,9 +60,15 @@ class xc330gripper(gp.GripperInterface):
         self.rgt.jnts[1]['loc_motionax'] = np.array([-1, 0, 0])
         self.rgt.lnks[1]['name'] = "rgt"
         self.rgt.lnks[1]['mesh_file'] = os.path.join(this_dir, "meshes", "rgt.stl")
+        self.rgt.lnks[1]['mesh_file'] = cm.CollisionModel(os.path.join(this_dir, "meshes", "rgt.stl"),
+                                                          cdprimit_type="user_defined",
+                                                          userdefined_cdprimitive_fn=self._finger_right_cdnp,
+                                                          expand_radius=0)
         self.rgt.lnks[1]['rgba'] = [.5, .5, .5, 1]
+
         # jaw center
         self.jaw_center_pos = np.array([-.0265, .018, .0662]) + coupling_offset_pos
+
         # reinitialize
         self.lft.reinitialize()
         self.rgt.reinitialize()
@@ -60,7 +76,31 @@ class xc330gripper(gp.GripperInterface):
         self.jawwidth_rng = [0, .029]
         # collision detection
         self.all_cdelements = []
-        self.enable_cc(toggle_cdprimit=enable_cc)
+        # self.enable_cc(toggle_cdprimit=enable_cc)
+
+    @staticmethod
+    def _hnd_base_cdnp(name, radius):
+        collision_node = CollisionNode(name)
+        collision_primitive_c0 = CollisionBox(Point3(-.0265, .018, .02265),
+                                              x=.027 + radius, y=.0185 + radius, z=.019 + radius)
+        collision_node.addSolid(collision_primitive_c0)  # 0.62
+        return collision_node
+
+    @staticmethod
+    def _finger_left_cdnp(name, radius):
+        collision_node = CollisionNode(name)
+        collision_primitive_c0 = CollisionBox(Point3(-.00435, -.0075, .025),
+                                              x=.0044 + radius, y=.008 + radius, z=.0085 + radius)
+        collision_node.addSolid(collision_primitive_c0)
+        return collision_node
+
+    @staticmethod
+    def _finger_right_cdnp(name, radius):
+        collision_node = CollisionNode(name)
+        collision_primitive_c0 = CollisionBox(Point3(.00435, .0075, .025),
+                                              x=.0044 + radius, y=.008 + radius, z=.0085 + radius)
+        collision_node.addSolid(collision_primitive_c0)
+        return collision_node
 
     def enable_cc(self, toggle_cdprimit):
         if toggle_cdprimit:
@@ -150,7 +190,7 @@ class xc330gripper(gp.GripperInterface):
                       toggle_tcpcs=False,
                       toggle_jntscs=False,
                       rgba=None,
-                      name='xc330gripper'):
+                      name='Xc330gripper'):
         meshmodel = mc.ModelCollection(name=name)
         # self.coupling.gen_meshmodel(tcp_loc_pos=None,
         #                             tcp_loc_rotmat=None,
@@ -186,14 +226,13 @@ if __name__ == '__main__':
 
     base = wd.World(cam_pos=[.5, .5, .5], lookat_pos=[0, 0, 0])
     gm.gen_frame().attach_to(base)
-    grpr = xc330gripper()
+
+    grpr = Xc330gripper()
     grpr.jaw_to(0.029)
     grpr.gen_meshmodel().attach_to(base)
-    # grpr.gen_stickmodel(togglejntscs=False).attach_to(base)
-    grpr.fix_to(pos=np.array([0, .2, .2]), rotmat=rm.rotmat_from_axangle([1, 0, 0], .05))
-    jawwidth = grpr.get_jawwidth()
-    print(jawwidth)
+    gm.gen_frame(np.array([-.0265, .018, .0662]), np.eye(3)).attach_to(base)
+
+    grpr.fix_to(pos=np.array([.1, .0, .0]), rotmat=np.eye(3))
     grpr.gen_meshmodel().attach_to(base)
-    grpr.show_cdmesh()
-    grpr.show_cdprimit()
+    # grpr.show_cdprimit()
     base.run()

@@ -13,6 +13,7 @@ class ModelCollection(object):
         self._name = name
         self._gm_list = []
         self._cm_list = []
+        self._bdm_list = []
 
     @property
     def name(self):
@@ -25,6 +26,10 @@ class ModelCollection(object):
     @property
     def gm_list(self):
         return self._gm_list
+
+    @property
+    def bdm_list(self):
+        return self._bdm_list
 
     @property
     def cdmesh(self):
@@ -50,11 +55,42 @@ class ModelCollection(object):
     def cdmesh_list(self):
         return [objcm.cdmesh for objcm in self._cm_list]
 
+    @property
+    def bdmmesh(self):
+        vertices = []
+        vertex_normals = []
+        faces = []
+        for objcm in self._cm_list:
+            if objcm.cdmesh_type == 'aabb':
+                objtrm = objcm.objtrm.bounding_box
+            elif objcm.cdmesh_type == 'obb':
+                objtrm = objcm.objtrm.bounding_box_oriented
+            elif objcm.cdmesh_type == 'convexhull':
+                objtrm = objcm.objtrm.convex_hull
+            elif objcm.cdmesh_type == 'triangles':
+                objtrm = objcm.objtrm
+            homomat = objcm.get_homomat()
+            vertices += rm.homomat_transform_points(homomat, objtrm.vertices)
+            vertex_normals += rm.homomat_transform_points(homomat, objtrm.vertex_normals)
+            faces += (objtrm.faces + len(faces))
+        return mcd.gen_cdmesh_vvnf(vertices, vertex_normals, faces)
+
+    @property
+    def bdmmesh_list(self):
+        return [objcm.cdmesh for objcm in self._cm_list]
+
     def add_cm(self, objcm):
         self._cm_list.append(objcm)
 
     def remove_cm(self, objcm):
         self._cm_list.remove(objcm)
+
+    def add_bdm(self, objbdm):
+        self._bdm_list.append(objbdm)
+        # base.attach_internal_update_obj(objbdm)
+
+    def remove_bdm(self, objbdm):
+        self._bdm_list.remove(objbdm)
 
     def add_gm(self, objcm):
         self._gm_list.append(objcm)
@@ -68,12 +104,16 @@ class ModelCollection(object):
             cm.attach_to(obj)
         for gm in self._gm_list:
             gm.attach_to(obj)
+        for bdm in self._bdm_list:
+            bdm.attach_to(obj)
 
     def detach(self):
         for cm in self._cm_list:
             cm.detach()
         for gm in self._gm_list:
             gm.detach()
+        # for bdm in self._bdm_list:
+        #     bdm.attach_to(obj)
 
     def show_cdprimit(self): # only work for cm
         for cm in self._cm_list:

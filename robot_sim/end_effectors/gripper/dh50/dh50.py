@@ -56,6 +56,7 @@ class Dh50(gp.GripperInterface):
 
         # jaw center
         self.jaw_center_pos = np.array([0, 0, .128]) + coupling_offset_pos
+        # self.jaw_center_rotmat = rm.rotmat_from_axangle([1, 0, 0], math.pi/2)
 
         # jaw width
         self.jawwidth_rng = [.0, .05]
@@ -83,7 +84,6 @@ class Dh50(gp.GripperInterface):
                                               x=.014 + radius, y=0.014 + radius, z=.023 + radius)
         collision_node.addSolid(collision_primitive_c0)
         return collision_node
-
 
     def enable_cc(self, toggle_cdprimit):
         if toggle_cdprimit:
