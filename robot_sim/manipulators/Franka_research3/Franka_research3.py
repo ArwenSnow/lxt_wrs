@@ -30,27 +30,27 @@ class Franka(mi.ManipulatorInterface):
         # 7 joints(7+1)
         self.jlc.jnts[1]['loc_pos'] = np.array([0, 0, 0.141])
         self.jlc.jnts[1]['loc_motionax'] = np.array([0, 0, 1])
-        # self.jlc.jnts[1]['motion_rng'] = [-2.90, 2.90]
+        self.jlc.jnts[1]['motion_rng'] = [-2.90, 2.90]
 
         self.jlc.jnts[2]['loc_pos'] = np.array([-0.000009, -0.000500, 0.192025])
         self.jlc.jnts[2]['loc_rotmat'] = rm.rotmat_from_euler(-np.pi / 2, 0, 0)
         self.jlc.jnts[2]['loc_motionax'] = np.array([0, 0, 1])
-        # self.jlc.jnts[2]['motion_rng'] = [-1.83, 1.83]
+        self.jlc.jnts[2]['motion_rng'] = [-1.83, 1.83]
 
         self.jlc.jnts[3]['loc_pos'] = np.array([0, -0.192974, 0])
         self.jlc.jnts[3]['loc_rotmat'] = rm.rotmat_from_euler(np.pi / 2, 0, 0)
         self.jlc.jnts[3]['loc_motionax'] = np.array([0, 0, 1])
-        # self.jlc.jnts[3]['motion_rng'] = [-2.90, 2.90]
+        self.jlc.jnts[3]['motion_rng'] = [-2.90, 2.90]
 
         self.jlc.jnts[4]['loc_pos'] = np.array([0.082504, -0.0005, 0.122952])
         self.jlc.jnts[4]['loc_rotmat'] = rm.rotmat_from_euler(np.pi / 2, 0, 0)
         self.jlc.jnts[4]['loc_motionax'] = np.array([0, 0, 1])
-        # self.jlc.jnts[4]['motion_rng'] = [-3.07, -0.12]
+        self.jlc.jnts[4]['motion_rng'] = [-3.07, -0.12]
 
         self.jlc.jnts[5]['loc_pos'] = np.array([-0.082504, 0.123952, -0.000500])
         self.jlc.jnts[5]['loc_rotmat'] = rm.rotmat_from_euler(-np.pi / 2, 0, 0)
         self.jlc.jnts[5]['loc_motionax'] = np.array([0, 0, 1])
-        # self.jlc.jnts[5]['motion_rng'] = [-2.88, 2.88]
+        self.jlc.jnts[5]['motion_rng'] = [-2.88, 2.88]
 
         self.jlc.jnts[6]['loc_pos'] = np.array([0, 0.016401, 0.260])
         x = rm.rotmat_from_axangle([1, 0, 0], math.pi/2)
@@ -58,12 +58,12 @@ class Franka(mi.ManipulatorInterface):
         z = rm.rotmat_from_axangle([0, 0, 1], -math.pi/2)
         self.jlc.jnts[6]['loc_rotmat'] = y@x@z
         self.jlc.jnts[6]['loc_motionax'] = np.array([0, 0, 1])
-        # self.jlc.jnts[6]['motion_rng'] = [0.44, 4.63]
+        self.jlc.jnts[6]['motion_rng'] = [0.44, 4.63]
 
         self.jlc.jnts[7]['loc_pos'] = np.array([0.088012, -0.05045, 0.016429])
         self.jlc.jnts[7]['loc_rotmat'] = rm.rotmat_from_euler(np.pi/2, 0, 0)
         self.jlc.jnts[7]['loc_motionax'] = np.array([0, 0, 1])
-        # self.jlc.jnts[7]['motion_rng'] = [-3.05, 3.05]
+        self.jlc.jnts[7]['motion_rng'] = [-3.05, 3.05]
 
         self.jlc.jnts[8]['loc_pos'] = np.array([0, 0, 0.05665])
         self.jlc.jnts[8]['loc_rotmat'] = (rm.rotmat_from_axangle([0, 0, 1], -math.pi/4)

@@ -30,10 +30,10 @@ class PreGrasp:
 
         # ===================================generate path===================================
         self.rrtc = rrtc.RRTConnect(self.rbt)
-        self.grasp_1 = gpa.load_pickle_file('finger_1', '../grasp_info/', 'finger_1_cd.pickle')
-        self.grasp_2 = gpa.load_pickle_file('finger_2', '../grasp_info/', 'finger_2_cd.pickle')
-        self.grasp_3 = gpa.load_pickle_file('finger_3', '../grasp_info/', 'finger_3_cd.pickle')
-        self.grasp_4 = gpa.load_pickle_file('finger_4', '../grasp_info/', 'finger_4_cd.pickle')
+        self.pre_grasp_1 = gpa.load_pickle_file('finger_1', '../grasp_info/pickle', 'pre_finger_1_cd.pickle')
+        self.pre_grasp_2 = gpa.load_pickle_file('finger_2', '../grasp_info/pickle', 'pre_finger_2_cd.pickle')
+        self.formal_grasp_3 = gpa.load_pickle_file('finger_3', '../grasp_info/pickle', 'formal_finger_3_cd.pickle')
+        self.formal_grasp_4 = gpa.load_pickle_file('finger_4', '../grasp_info/pickle', 'formal_finger_4_cd.pickle')
         self.path = []
         self.path_len = []
         self.cum_lengths = []
@@ -52,6 +52,23 @@ class PreGrasp:
                               obstacle_list=[],
                               ext_dist=0.05)
         return conf, path
+
+    def finger_manipulation(self, gl_pos, gl_rot, start_conf):
+        pre_pos = gl_pos.copy()
+        pre_pos[2] += 0.1
+        c1, p1 = self.make_path(pre_pos, gl_rot, start_conf)
+        if c1 is None or p1 is None:
+            return None
+        c2, p2 = self.make_path(gl_pos, gl_rot, c1)
+        if c2 is None or p2 is None:
+            return None
+        c3, p3 = self.make_path(pre_pos, gl_rot, c2)
+        if c3 is None or p3 is None:
+            return None
+        return {
+            "conf": [c1, c2, c3],
+            "path": [p1, p2, p3]
+        }
 
     def update_robot_joints(self, jnt_values):
         try:
@@ -72,11 +89,17 @@ class PreGrasp:
             if jnt_values is not None:
                 self.update_robot_joints(jnt_values)
             # 到达finger_1抓取点
-            if self.count == self.path_len[1]:
+            if self.count == self.cum_lengths[1]:
                 self.rbt.hold(hnd_name="hnd", objcm=self.finger_1, jawwidth=0.015)
-            # # 到达finger_1释放点
-            # if self.count == self.path_len[3]:
-            #     self.rbt.release(hnd_name="hnd", objcm=self.finger_1, jawwidth=0.029)
+            # 到达finger_1释放点
+            if self.count == self.cum_lengths[4]:
+                self.rbt.release(hnd_name="hnd", objcm=self.finger_1, jawwidth=0.029)
+            # 到达finger_2抓取点
+            if self.count == self.cum_lengths[7]:
+                self.rbt.hold(hnd_name="hnd", objcm=self.finger_2, jawwidth=0.015)
+            # 到达finger_2释放点
+            if self.count == self.cum_lengths[10]:
+                self.rbt.release(hnd_name="hnd", objcm=self.finger_2, jawwidth=0.029)
             self.count += 1
             return task.again
         else:
@@ -128,35 +151,56 @@ if __name__ == '__main__':
     pre.table.attach_to(base)
     pre.target.attach_to(base)
 
-    for grasp_fin_1_info in pre.grasp_1:
-        jaw_width, gl_gri_pos, gl_gri_rotmat = grasp_fin_1_info
-
-        # 到finger_1上方10厘米
-        pre_gri_pos = gl_gri_pos.copy()
-        pre_gri_pos[2] += .1
-        pre_gri_rot = gl_gri_rotmat.copy()
-        conf_1, path_1 = pre.make_path(pos=pre_gri_pos, rotmat=pre_gri_rot,
-                                       start_conf=np.array([0.0, -0.3, 0.0, -1.8, 0.0, 1.5, math.pi/4*3]))
-        if conf_1 is None or path_1 is None:
+    total = 0
+    found = False
+    for grasp_fin_1_info in pre.pre_grasp_1:
+        # =============================把finger_1摆放到合适抓取的位置=============================
+        fin_1_info, fin_3_info = grasp_fin_1_info
+        _, gl_gri_pos_1, gl_gri_rotmat_1 = fin_1_info
+        _, gl_gri_pos_3, gl_gri_rotmat_3 = fin_3_info
+        # ==================================抓初始finger_1==================================
+        res_1 = pre.finger_manipulation(gl_pos=gl_gri_pos_1, gl_rot=gl_gri_rotmat_1, start_conf=np.array([0.0, -0.3, 0.0, -1.8, 0.0, 1.5, math.pi / 4 * 3]))
+        if res_1 is None:
             continue
-
-        # 到finger_1抓取位置
-        conf_2, path_2 = pre.make_path(pos=gl_gri_pos, rotmat=gl_gri_rotmat,
-                                       start_conf=conf_1)
-        if conf_2 is None or path_2 is None:
+        path_1, path_2, path_3 = res_1["path"]
+        _, _, conf_3 = res_1["conf"]
+        # ==============================把finger_1放到finger_3位姿==============================
+        res_2 = pre.finger_manipulation(gl_pos=gl_gri_pos_3, gl_rot=gl_gri_rotmat_3, start_conf=conf_3)
+        if res_2 is None:
             continue
+        path_4, path_5, path_6 = res_2["path"]
+        _, _, conf_6 = res_2["conf"]
 
-        # 抓起finger_1到上方10厘米
-        conf_3, path_3 = pre.make_path(pos=pre_gri_pos, rotmat=pre_gri_rot,
-                                       start_conf=conf_2)
-        if conf_3 is None or path_3 is None:
-            continue
+        for grasp_fin_2_info in pre.pre_grasp_2:
+            # =============================把finger_2摆放到合适抓取的位置=============================
+            fin_2_info, fin_4_info = grasp_fin_2_info
+            _, gl_gri_pos_2, gl_gri_rotmat_2 = fin_2_info
+            _, gl_gri_pos_4, gl_gri_rotmat_4 = fin_4_info
+            # ==============================抓初始finger_2==============================
+            res_3 = pre.finger_manipulation(gl_pos=gl_gri_pos_2, gl_rot=gl_gri_rotmat_2, start_conf=conf_6)
+            if res_3 is None:
+                continue
+            path_7, path_8, path_9 = res_3["path"]
+            _, _, conf_9 = res_3["conf"]
+            # ==============================把finger_2放到finger_4位姿==============================
+            res_4 = pre.finger_manipulation(gl_pos=gl_gri_pos_4, gl_rot=gl_gri_rotmat_4, start_conf=conf_9)
+            if res_4 is None:
+                continue
+            path_10, path_11, path_12 = res_4["path"]
+            _, _, conf_12 = res_4["conf"]
 
-        pre.path_len = [len(path_1), len(path_2), len(path_3)]
-        pre.path.extend(path_1)
-        pre.path.extend(path_2)
-        pre.path.extend(path_3)
-        break
+            # ===============================总路径===============================
+            pre.path = (path_1 + path_2 + path_3 + path_4 + path_5 + path_6 +
+                        path_7 + path_8 + path_9 + path_10 + path_11 + path_12)
+            pre.path_len = [len(path_1), len(path_2), len(path_3), len(path_4), len(path_5), len(path_6),
+                            len(path_7), len(path_8), len(path_9), len(path_10), len(path_11), len(path_12)]
+            for p in pre.path_len:
+                total += p
+                pre.cum_lengths.append(total)
+            found = True
+            break
+        if found:
+            break
 
     # =========================================animation=========================================
     try:
