@@ -56,7 +56,7 @@ finger_3_rotmat = (rm.rotmat_from_axangle([1, 0, 0], -math.pi / 180 * 87.3)
                    @ rm.rotmat_from_axangle([0, 0, 1], math.pi))
 finger_4_pos = np.array([.0265, .75, .015])
 finger_4_rotmat = rm.rotmat_from_axangle([1, 0, 0], -math.pi / 180 * 87.3)
-finger = put_object("finger_b_2", np.array([0, 0, 0]), np.eye(3), [.9, .75, .35, 1])
+
 finger_1 = put_object("finger_b_2", finger_1_pos, finger_1_rotmat, [.9, .75, .35, 1])
 finger_2 = put_object("finger_b_2", finger_2_pos, finger_2_rotmat, [.9, .75, .35, 1])
 finger_3 = put_object("finger_b_2", finger_3_pos, finger_3_rotmat, [.9, .75, .35, 1])
@@ -90,7 +90,7 @@ for grasp_info in rec_grasp_list:
     cos_angle = (np.dot(x_axis_direction, desired_direction) /
                  (np.linalg.norm(x_axis_direction) * np.linalg.norm(desired_direction)))
 
-    # 筛选出lft的有效抓取方案，抓finger_1/2，T_w_jaw = T_w_rec @ T_rec_jaw，其中T_w_rec = T_w_cir @ T_cir_rec
+    # lft抓finger_1/2，T_w_jaw = T_w_rec @ T_rec_jaw，其中T_w_rec = T_w_cir @ T_cir_rec
     if cos_angle == 1 or cos_angle == -1:
         T_w_rec_1 = make_homo(finger_1_pos, finger_1_rotmat) @ T_cir_rec
         T_w_jaw_1 = T_w_rec_1 @ make_homo(jaw_center_pos, jaw_center_rotmat)
@@ -116,15 +116,20 @@ for grasp_info in cir_grasp_list:
     cos_angle = (np.dot(x_axis_direction, desired_direction) /
                  (np.linalg.norm(x_axis_direction) * np.linalg.norm(desired_direction)))
 
-    # 筛选出lft的有效抓取方案，抓finger_3，T_w_jaw = T_w_cir @ T_cir_jaw
+    # lft抓finger_3，T_w_jaw = T_w_cir @ T_cir_jaw
     if cos_angle == 1:
         T_w_jaw_3 = make_homo(finger_3_pos, finger_3_rotmat) @ make_homo(jaw_center_pos, jaw_center_rotmat)
         fin_3.append([jaw_width, T_w_jaw_3[:3, 3], T_w_jaw_3[:3, :3]])
 
-    # 筛选出rgt的有效抓取方案，抓finger_4，T_w_jaw = T_w_cir @ T_cir_jaw
+    # rgt抓finger_4，T_w_jaw = T_w_cir @ T_cir_jaw
     if cos_angle == -1:
         T_w_jaw_4 = make_homo(finger_4_pos, finger_4_rotmat) @ make_homo(jaw_center_pos, jaw_center_rotmat)
         fin_4.append([jaw_width, T_w_jaw_4[:3, 3], T_w_jaw_4[:3, :3]])
+
+gpa.write_pickle_file('finger_1', fin_1, './', 'finger_1.pickle')
+gpa.write_pickle_file('finger_2', fin_2, './', 'finger_2.pickle')
+gpa.write_pickle_file('finger_3', fin_3, './', 'finger_3.pickle')
+gpa.write_pickle_file('finger_4', fin_4, './', 'finger_4.pickle')
 
 base.run()
 

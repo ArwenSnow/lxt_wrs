@@ -3,7 +3,7 @@ import numpy as np
 import basis.robot_math as rm
 import visualization.panda.world as wd
 import grasping.planning.antipodal as gpa
-import robot_con.reconfgripper.grasp_planning.method_2.prepare_lft as pp
+import robot_con.reconfgripper.grasp_planning_old.method_2.prepare_lft as pp
 
 if __name__ == '__main__':
     base = wd.World(cam_pos=[-2, 4, 1.5], lookat_pos=[0, 0, 0])

@@ -11,71 +11,36 @@ import robot_sim.end_effectors.gripper.reconfgrippper.reconfgripper as rg
 
 
 class PreGrasp:
-    def __init__(self, pos_1, rot_1, pos_2, rot_2, pos_3, rot_3, pos_4, rot_4):
+    def __init__(self, pos_1, rot_1, pos_2, rot_2, pos_3, rot_3, pos_4, rot_4, tar_pos, tar_rot):
+        # ================================robot, gripper, object================================
         self.rbt = Fr.Franka_research3()
         self.hnd = rg.Reconfgripper()
+        self.main = rg.Reconfgripper().body
         self.lft = rg.Reconfgripper().lft
         self.rgt = rg.Reconfgripper().rgt
-        self.main = rg.Reconfgripper().body
 
-        self.rrtc = rrtc.RRTConnect(self.rbt)
-        self.path = []
-        for idx in range(12):
-            setattr(self, f"path_{idx + 1}", [])
-        self.cum_lengths = []
-        self.path_len = []
+        self.finger_1 = self.put_object("finger_b_2", pos_1, rot_1, [.9, .75, .35, 1])
+        self.finger_2 = self.put_object("finger_b_2", pos_2, rot_2, [.9, .75, .35, 1])
+        self.finger_3 = self.put_object("finger_b_2", pos_3, rot_3, [.9, .75, .35, 1])
+        self.finger_4 = self.put_object("finger_b_2", pos_4, rot_4, [.9, .75, .35, 1])
+        self.target = self.put_object("box", tar_pos, tar_rot, [.9, .75, .35, 1])
+        self.table = self.put_object("table", np.array([0, 0, 0]), np.eye(3), [.35, .35, .35, 1])
 
-        self.count = 0
         self.current_robot_mesh = self.rbt.gen_meshmodel()
-        self.objcm_list = [self.rbt.base_stand.lnks[0]['collision_model']]
-        self.lft_list = gpa.load_pickle_file('finger_1', '../grasp_info/', 'first_lft_grasps.pickle')
-        self.rgt_list = gpa.load_pickle_file('finger_2', '../grasp_info/', 'first_rgt_grasps.pickle')
 
-        # 齐次矩阵
-        self.T_rec_cir = self.make_homo(rotmat=rm.rotmat_from_axangle([0, 0, 1], -math.pi / 2),
-                                        tvec=np.array([0, .065, -.09398]))
-        self.finger_1, self.T_cir_w_1 = self.finger(fin_pos=pos_1, fin_rotmat=rot_1)
-        self.finger_2, self.T_cir_w_2 = self.finger(fin_pos=pos_2, fin_rotmat=rot_2)
-        self.finger_3, self.T_cir_w_3 = self.finger(fin_pos=pos_3, fin_rotmat=rot_3)
-        self.finger_4, self.T_cir_w_4 = self.finger(fin_pos=pos_4, fin_rotmat=rot_4)
+        # ===================================generate path===================================
+        self.rrtc = rrtc.RRTConnect(self.rbt)
+        self.grasp_1 = gpa.load_pickle_file('finger_1', '../grasp_info/', 'finger_1_cd.pickle')
+        self.grasp_2 = gpa.load_pickle_file('finger_2', '../grasp_info/', 'finger_2_cd.pickle')
+        self.grasp_3 = gpa.load_pickle_file('finger_3', '../grasp_info/', 'finger_3_cd.pickle')
+        self.grasp_4 = gpa.load_pickle_file('finger_4', '../grasp_info/', 'finger_4_cd.pickle')
+        self.path = []
+        self.path_len = []
+        self.cum_lengths = []
+        self.count = 0
 
-        self.T_w_rec_1 = np.linalg.inv(self.T_rec_cir @ self.T_cir_w_1)
-        self.T_w_rec_2 = np.linalg.inv(self.T_rec_cir @ self.T_cir_w_2)
-        self.T_w_rec_3 = np.linalg.inv(self.T_rec_cir @ self.T_cir_w_3)
-        self.T_w_rec_4 = np.linalg.inv(self.T_rec_cir @ self.T_cir_w_4)
-
-    def finger(self, fin_pos, fin_rotmat):
-        finger = cm.CollisionModel("../objects/finger_b_2.stl")
-        finger.set_pos(fin_pos)
-        finger.set_rotmat(fin_rotmat)
-        finger.set_rgba([.9, .75, .35, 1])
-        homo_cir_w = np.linalg.inv(self.make_homo(rotmat=fin_rotmat, tvec=fin_pos))
-        return finger, homo_cir_w
-
-    def put_gripper(self, gri_name, fin_name, jaw_center_pos, jaw_center_rotmat, jaw_width):
-        if fin_name == "1":
-            w_jaw = self.T_w_rec_1 @ self.make_homo(rotmat=jaw_center_rotmat, tvec=jaw_center_pos)
-        elif fin_name == "2":
-            w_jaw = self.T_w_rec_2 @ self.make_homo(rotmat=jaw_center_rotmat, tvec=jaw_center_pos)
-        elif fin_name == "3":
-            w_jaw = self.T_w_rec_3 @ self.make_homo(rotmat=jaw_center_rotmat, tvec=jaw_center_pos)
-        elif fin_name == "4":
-            w_jaw = self.T_w_rec_4 @ self.make_homo(rotmat=jaw_center_rotmat, tvec=jaw_center_pos)
-
-        if gri_name == "lft":
-            self.lft.grip_at_with_jcpose(w_jaw[:3, 3], w_jaw[:3, :3], jaw_width)
-            gl_s_pos = self.lft.pos
-            gl_s_rotmat = self.lft.rotmat
-            g_pos = gl_s_rotmat @ np.array([-.053, .018, -.132]) + gl_s_pos
-            g_rotmat = gl_s_rotmat
-        elif gri_name == "rgt":
-            self.rgt.grip_at_with_jcpose(w_jaw[:3, 3], w_jaw[:3, :3], jaw_width)
-            gl_s_pos = self.rgt.pos
-            gl_s_rotmat = self.rgt.rotmat
-            g_pos = gl_s_rotmat @ np.array([.053, -.018, -.132]) + gl_s_pos
-            g_rotmat = gl_s_rotmat
-        self.hnd.fix_to(g_pos, g_rotmat)
-        return g_pos, g_rotmat
+        # ================================collision detection================================
+        self.objcm_list = [self.table, self.target]
 
     def make_path(self, pos, rotmat, start_conf):
         conf = self.rbt.tracik(tgt_pos=pos, tgt_rotmat=rotmat)
@@ -102,30 +67,16 @@ class PreGrasp:
             return False
 
     def update_task(self, task):
-        self.path_len = [
-            self.path_1, self.path_2, self.path_3, self.path_4, self.path_5,
-            self.path_6, self.path_7, self.path_8, self.path_9, self.path_10,
-        ]
-        total = 0
-        for p in self.path_len:
-            total += len(p)
-            self.cum_lengths.append(total)
         if self.count < len(self.path):
             jnt_values = self.path[self.count]
             if jnt_values is not None:
                 self.update_robot_joints(jnt_values)
             # 到达finger_1抓取点
-            if self.count == self.cum_lengths[1]:
+            if self.count == self.path_len[1]:
                 self.rbt.hold(hnd_name="hnd", objcm=self.finger_1, jawwidth=0.015)
-            # 到达finger_1释放点
-            if self.count == self.cum_lengths[3]:
-                self.rbt.release(hnd_name="hnd", objcm=self.finger_1, jawwidth=0.029)
-            # 到达finger_2抓取点
-            if self.count == self.cum_lengths[6]:
-                self.rbt.hold(hnd_name="hnd", objcm=self.finger_2, jawwidth=0.015)
-            # 到达finger_2释放点
-            if self.count == self.cum_lengths[8]:
-                self.rbt.release(hnd_name="hnd", objcm=self.finger_2, jawwidth=0.029)
+            # # 到达finger_1释放点
+            # if self.count == self.path_len[3]:
+            #     self.rbt.release(hnd_name="hnd", objcm=self.finger_1, jawwidth=0.029)
             self.count += 1
             return task.again
         else:
@@ -133,25 +84,19 @@ class PreGrasp:
             return task.done
 
     @staticmethod
-    def make_homo(rotmat, tvec):
-        homo = np.eye(4)
-        homo[:3, :3] = rotmat
-        homo[:3, 3] = tvec
-        return homo
+    def put_object(name, obj_pos, obj_rot, color):
+        obj = cm.CollisionModel(f"../objects/{name}.stl")
+        obj.set_pos(obj_pos)
+        obj.set_rotmat(obj_rot)
+        obj.set_rgba(color)
+        return obj
 
     @staticmethod
-    def split_traj(traj, lengths):
-        paths = []
-        start = 0
-        for length in lengths:
-            paths.append(traj[start:start + length])
-            start += length
-        return paths
-
-    def assign_paths(self, paths):
-        for i in range(10):
-            setattr(self, f"path_{i + 1}", paths[i])
-        self.path = list(chain.from_iterable(paths))
+    def make_homo(pos, rotmat):
+        homo = np.eye(4)
+        homo[:3, :3] = rotmat
+        homo[:3, 3] = pos
+        return homo
 
 
 if __name__ == '__main__':
@@ -169,89 +114,60 @@ if __name__ == '__main__':
                        @ rm.rotmat_from_axangle([0, 0, 1], math.pi))
     finger_4_pos = np.array([.0265, .75, .015])
     finger_4_rotmat = rm.rotmat_from_axangle([1, 0, 0], -math.pi / 180 * 87.3)
+    target_pos = np.array([-.4, .85, 0])
+    target_rot = rm.rotmat_from_axangle([1, 0, 0], math.pi/2)
     pre = PreGrasp(pos_1=finger_1_pos, rot_1=finger_1_rotmat,
                    pos_2=finger_2_pos, rot_2=finger_2_rotmat,
                    pos_3=finger_3_pos, rot_3=finger_3_rotmat,
-                   pos_4=finger_4_pos, rot_4=finger_4_rotmat)
+                   pos_4=finger_4_pos, rot_4=finger_4_rotmat,
+                   tar_pos=target_pos, tar_rot=target_rot)
     pre.finger_1.attach_to(base)
+    pre.finger_2.attach_to(base)
+    # pre.finger_3.attach_to(base)
+    # pre.finger_4.attach_to(base)
+    pre.table.attach_to(base)
+    pre.target.attach_to(base)
 
-    # =========================================step1:grasp_fin1=========================================
-    lft_pre_list = []
-    lft_rel_list = []
-    for i in pre.lft_list:
-        jaw_width, jaw_center_pos, jaw_center_rotmat, hnd_pos, hnd_rotmat = i
-        g_pos_1, g_rotmat_1 = pre.put_gripper(gri_name="lft", fin_name="1",
-                                              jaw_center_pos=jaw_center_pos, jaw_center_rotmat=jaw_center_rotmat,
-                                              jaw_width=jaw_width)
+    for grasp_fin_1_info in pre.grasp_1:
+        jaw_width, gl_gri_pos, gl_gri_rotmat = grasp_fin_1_info
 
-        if not pre.hnd.is_mesh_collided(objcm_list=pre.objcm_list):
-            if pre.rbt.tracik(tgt_pos=g_pos_1, tgt_rotmat=g_rotmat_1) is not None:
-                g_pos_3, g_rotmat_3 = pre.put_gripper(gri_name="lft", fin_name="3",
-                                                      jaw_center_pos=jaw_center_pos, jaw_center_rotmat=jaw_center_rotmat,
-                                                      jaw_width=jaw_width)
+        # 到finger_1上方10厘米
+        pre_gri_pos = gl_gri_pos.copy()
+        pre_gri_pos[2] += .1
+        pre_gri_rot = gl_gri_rotmat.copy()
+        conf_1, path_1 = pre.make_path(pos=pre_gri_pos, rotmat=pre_gri_rot,
+                                       start_conf=np.array([0.0, -0.3, 0.0, -1.8, 0.0, 1.5, math.pi/4*3]))
+        if conf_1 is None or path_1 is None:
+            continue
 
-                if not pre.hnd.is_mesh_collided(objcm_list=pre.objcm_list):
-                    if pre.rbt.tracik(tgt_pos=g_pos_3, tgt_rotmat=g_rotmat_3) is not None:
-                        lft_pre_list.append([g_pos_1, g_rotmat_1, jaw_width])
-                        lft_rel_list.append([g_pos_3, g_rotmat_3, jaw_width])
+        # 到finger_1抓取位置
+        conf_2, path_2 = pre.make_path(pos=gl_gri_pos, rotmat=gl_gri_rotmat,
+                                       start_conf=conf_1)
+        if conf_2 is None or path_2 is None:
+            continue
 
-    # =========================================path_plan=========================================
-    start_conf = np.array([0.0, -0.3, 0.0, -1.8, 0.0, 1.5, math.pi/4*3])
-    path_1 = []
-    path_2 = []
-    path_3 = []
-    path_4 = []
-    path_5 = []
+        # 抓起finger_1到上方10厘米
+        conf_3, path_3 = pre.make_path(pos=pre_gri_pos, rotmat=pre_gri_rot,
+                                       start_conf=conf_2)
+        if conf_3 is None or path_3 is None:
+            continue
 
-    for l_pos_1, l_rotmat_1, _ in lft_pre_list:
-        l_pos_1_pre = l_pos_1.copy()
-        l_rotmat_1_pre = l_rotmat_1.copy()
-        l_pos_1_pre[2] += 0.1
-        conf_1, pre.path_1 = pre.make_path(pos=l_pos_1_pre, rotmat=l_rotmat_1_pre, start_conf=start_conf)
-        path_1_test = pre.path_1.copy()
+        pre.path_len = [len(path_1), len(path_2), len(path_3)]
+        pre.path.extend(path_1)
+        pre.path.extend(path_2)
+        pre.path.extend(path_3)
+        break
 
-        if conf_1 is not None and pre.path_1 is not None:
-            conf_2, pre.path_2 = pre.make_path(pos=l_pos_1, rotmat=l_rotmat_1, start_conf=conf_1)
+    # =========================================animation=========================================
+    try:
+        taskMgr.doMethodLater(0.05, pre.update_task, "update")
+        base.run()
+    except KeyboardInterrupt:
+        print("\n服务器被用户中断")
 
-            if conf_2 is not None and pre.path_2 is not None:
-                conf_3, pre.path_3 = pre.make_path(pos=l_pos_1_pre, rotmat=l_rotmat_1_pre, start_conf=conf_2)
+    base.run()
 
-                if conf_3 is not None and pre.path_3 is not None:
-                    for l_pos_2, l_rotmat_2, jawwidth in lft_rel_list:
-                        conf_4, pre.path_4 = pre.make_path(pos=l_pos_2, rotmat=l_rotmat_2, start_conf=conf_3)
 
-                        if conf_4 is not None and pre.path_4 is not None:
-                            l_pos_2_after = l_pos_2.copy()
-                            l_rotmat_2_after = l_rotmat_2.copy()
-                            l_pos_2_after[2] += 0.1
-                            conf_5, pre.path_5 = pre.make_path(pos=l_pos_2_after, rotmat=l_rotmat_2_after, start_conf=conf_4)
-
-                            if conf_5 is not None and pre.path_5 is not None:
-                                path_1.append([conf_1, pre.path_1])
-                                path_2.append([conf_2, pre.path_2])
-                                path_3.append([conf_3, pre.path_3])
-                                path_4.append([conf_4, pre.path_4])
-                                path_5.append([conf_5, pre.path_5])
-                                # break
-
-    gpa.write_pickle_file('path_1', path_1, 'path_info/', 'path_1.pickle')
-    gpa.write_pickle_file('path_2', path_2, 'path_info/', 'path_2.pickle')
-    gpa.write_pickle_file('path_3', path_3, 'path_info/', 'path_3.pickle')
-    gpa.write_pickle_file('path_4', path_4, 'path_info/', 'path_4.pickle')
-    gpa.write_pickle_file('path_5', path_5, 'path_info/', 'path_5.pickle')
-
-    # pre.path.extend(pre.path_1)
-    # pre.path.extend(pre.path_2)
-    # pre.path.extend(pre.path_3)
-    # pre.path.extend(pre.path_4)
-    # pre.path.extend(pre.path_5)
-
-    # # =========================================animation=========================================
-    # try:
-    #     taskMgr.doMethodLater(0.05, pre.update_task, "update")
-    #     base.run()
-    # except KeyboardInterrupt:
-    #     print("\n服务器被用户中断")
 
 
 
