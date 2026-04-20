@@ -90,13 +90,15 @@ for grasp_info in rec_grasp_list:
     cos_angle = (np.dot(x_axis_direction, desired_direction) /
                  (np.linalg.norm(x_axis_direction) * np.linalg.norm(desired_direction)))
 
-    # 筛选出lft的有效抓取方案，抓finger_1，T_w_jaw = T_w_rec @ T_rec_jaw，其中T_w_rec = T_w_cir @ T_cir_rec
-    if cos_angle == 1:
+    # 筛选出lft的有效抓取方案，抓finger_1/2，T_w_jaw = T_w_rec @ T_rec_jaw，其中T_w_rec = T_w_cir @ T_cir_rec
+    if cos_angle == 1 or cos_angle == -1:
         T_w_rec_1 = make_homo(finger_1_pos, finger_1_rotmat) @ T_cir_rec
         T_w_jaw_1 = T_w_rec_1 @ make_homo(jaw_center_pos, jaw_center_rotmat)
-        lft_gripper.grip_at_with_jcpose(T_w_jaw_1[:3, 3], T_w_jaw_1[:3, 3], jaw_width)
-        lft_gripper.gen_meshmodel().attach_to(base)
-        break
+        fin_1.append([jaw_width, T_w_jaw_1[:3, 3], T_w_jaw_1[:3, :3]])
+
+        T_w_rec_2 = make_homo(finger_2_pos, finger_2_rotmat) @ T_cir_rec
+        T_w_jaw_2 = T_w_rec_2 @ make_homo(jaw_center_pos, jaw_center_rotmat)
+        fin_2.append([jaw_width, T_w_jaw_2[:3, 3], T_w_jaw_2[:3, :3]])
 
 # =====================================planning for finger_3/4=====================================
 cir_grasp_list = gpa.plan_grasps(lft_gripper, tool_cir,
